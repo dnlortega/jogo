@@ -9,16 +9,19 @@
   h1, h2, p { text-align: center; }
   #tabuleiro {
     display: grid;
-    grid-template-columns: repeat(11, minmax(25px, 1fr));
-    grid-template-rows: repeat(11, minmax(25px, 1fr));
-    gap: 1px;
-    margin: 10px;
+    grid-template-columns: repeat(11, minmax(35px, 1fr));
+    grid-template-rows: repeat(11, minmax(35px, 1fr));
+    gap: 2px;
+    margin: 10px auto;
+    max-width: 420px;
+    height: auto;
+    touch-action: manipulation;
   }
   .casa {
     background: white;
     border: 1px solid #000;
-    font-size: 0.55em;
-    padding: 2px 4px;
+    font-size: 0.7em;
+    padding: 4px 6px;
     box-sizing: border-box;
     overflow: hidden;
     display: flex;
@@ -30,7 +33,7 @@
     border: none;
   }
   .jogador {
-    font-size: 1.2em;
+    font-size: 1.4em;
     line-height: 1em;
   }
   #painel {
@@ -70,9 +73,9 @@
     width: 100%;
   }
   .icon {
-    font-size: 1.2em;
+    font-size: 1.5em;
     text-align: center;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
   }
   /* Categorias com cores */
   .imposto { background: #ffcccc; }      /* vermelho claro */
