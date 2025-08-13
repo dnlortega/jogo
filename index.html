@@ -18,9 +18,12 @@
     background: white;
     border: 1px solid #000;
     font-size: 0.55em;
-    padding: 1px;
+    padding: 2px 4px;
     box-sizing: border-box;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
   .vazio {
     background: transparent;
@@ -66,6 +69,17 @@
   #config button {
     width: 100%;
   }
+  .icon {
+    font-size: 1.2em;
+    text-align: center;
+    margin-bottom: 2px;
+  }
+  /* Categorias com cores */
+  .imposto { background: #ffcccc; }      /* vermelho claro */
+  .auditoria { background: #cce5ff; }    /* azul claro */
+  .custos { background: #d4edda; }       /* verde claro */
+  .relatorio { background: #fff3cd; }    /* amarelo claro */
+  .outros { background: #e2e3e5; }       /* cinza claro */
 </style>
 </head>
 <body>
@@ -94,27 +108,48 @@ let avatares = ["😀", "😎", "🤓", "🤑"];
 let posicoes = [];
 let dinheiro = [];
 let jogadorAtual = 0;
+
 const casas = [
-  {nome: "Imposto de Renda", valor: -200}, {nome: "Auditoria Fiscal", valor: -150},
-  {nome: "Contabilidade de Custos", valor: 100}, {nome: "Balancete", valor: 50},
-  {nome: "Escrituração Fiscal", valor: -100}, {nome: "Conciliação Bancária", valor: 200},
-  {nome: "Planejamento Tributário", valor: 150}, {nome: "Análise de Balanços", valor: -50},
-  {nome: "Folha de Pagamento", valor: -100}, {nome: "Controle Patrimonial", valor: 200},
-  {nome: "Inventário", valor: -50}, {nome: "Auditoria Interna", valor: -150},
-  {nome: "Relatório Gerencial", valor: 100}, {nome: "ICMS", valor: -200},
-  {nome: "ISS", valor: -100}, {nome: "PIS/COFINS", valor: -150},
-  {nome: "Nota Fiscal Eletrônica", valor: 50}, {nome: "Análise de Demonstrativos", valor: 100},
-  {nome: "DRE", valor: 200}, {nome: "Balanço Patrimonial", valor: 300},
-  {nome: "IRPJ", valor: -200}, {nome: "Lucro Real", valor: 150},
-  {nome: "Lucro Presumido", valor: 100}, {nome: "DCTF", valor: -150},
-  {nome: "SPED Contábil", valor: -100}, {nome: "SPED Fiscal", valor: -200},
-  {nome: "Simples Nacional", valor: 200}, {nome: "Encerramento de Exercício", valor: 100},
-  {nome: "Ativo Imobilizado", valor: -150}, {nome: "Controle de Estoque", valor: 150},
-  {nome: "Auditoria Externa", valor: -200}, {nome: "Custo de Produção", valor: 100},
-  {nome: "Margem de Contribuição", valor: 200}, {nome: "Ponto de Equilíbrio", valor: 150},
-  {nome: "Provisões Contábeis", valor: -100}, {nome: "Obrigações Trabalhistas", valor: -150},
-  {nome: "Despesas Antecipadas", valor: 50}, {nome: "Receitas Diferidas", valor: 100},
-  {nome: "Ajustes Contábeis", valor: -50}, {nome: "Compliance Contábil", valor: 300}
+  {nome: "Imposto de Renda", valor: -200, categoria:"imposto", icon:"💸"},
+  {nome: "Auditoria Fiscal", valor: -150, categoria:"auditoria", icon:"🕵️‍♂️"},
+  {nome: "Contabilidade de Custos", valor: 100, categoria:"custos", icon:"📊"},
+  {nome: "Balancete", valor: 50, categoria:"relatorio", icon:"📈"},
+  {nome: "Escrituração Fiscal", valor: -100, categoria:"imposto", icon:"🧾"},
+  {nome: "Conciliação Bancária", valor: 200, categoria:"custos", icon:"🏦"},
+  {nome: "Planejamento Tributário", valor: 150, categoria:"imposto", icon:"🗂️"},
+  {nome: "Análise de Balanços", valor: -50, categoria:"relatorio", icon:"🔍"},
+  {nome: "Folha de Pagamento", valor: -100, categoria:"custos", icon:"💰"},
+  {nome: "Controle Patrimonial", valor: 200, categoria:"custos", icon:"🏢"},
+  {nome: "Inventário", valor: -50, categoria:"auditoria", icon:"📦"},
+  {nome: "Auditoria Interna", valor: -150, categoria:"auditoria", icon:"🧐"},
+  {nome: "Relatório Gerencial", valor: 100, categoria:"relatorio", icon:"📑"},
+  {nome: "ICMS", valor: -200, categoria:"imposto", icon:"🏷️"},
+  {nome: "ISS", valor: -100, categoria:"imposto", icon:"🛎️"},
+  {nome: "PIS/COFINS", valor: -150, categoria:"imposto", icon:"📃"},
+  {nome: "Nota Fiscal Eletrônica", valor: 50, categoria:"custos", icon:"💻"},
+  {nome: "Análise de Demonstrativos", valor: 100, categoria:"relatorio", icon:"📋"},
+  {nome: "DRE", valor: 200, categoria:"relatorio", icon:"📊"},
+  {nome: "Balanço Patrimonial", valor: 300, categoria:"relatorio", icon:"🏦"},
+  {nome: "IRPJ", valor: -200, categoria:"imposto", icon:"🧾"},
+  {nome: "Lucro Real", valor: 150, categoria:"custos", icon:"💹"},
+  {nome: "Lucro Presumido", valor: 100, categoria:"custos", icon:"💵"},
+  {nome: "DCTF", valor: -150, categoria:"imposto", icon:"📅"},
+  {nome: "SPED Contábil", valor: -100, categoria:"auditoria", icon:"📂"},
+  {nome: "SPED Fiscal", valor: -200, categoria:"imposto", icon:"📁"},
+  {nome: "Simples Nacional", valor: 200, categoria:"imposto", icon:"📜"},
+  {nome: "Encerramento de Exercício", valor: 100, categoria:"relatorio", icon:"✔️"},
+  {nome: "Ativo Imobilizado", valor: -150, categoria:"custos", icon:"🏗️"},
+  {nome: "Controle de Estoque", valor: 150, categoria:"custos", icon:"📦"},
+  {nome: "Auditoria Externa", valor: -200, categoria:"auditoria", icon:"🔎"},
+  {nome: "Custo de Produção", valor: 100, categoria:"custos", icon:"⚙️"},
+  {nome: "Margem de Contribuição", valor: 200, categoria:"custos", icon:"📈"},
+  {nome: "Ponto de Equilíbrio", valor: 150, categoria:"custos", icon:"⚖️"},
+  {nome: "Provisões Contábeis", valor: -100, categoria:"imposto", icon:"🧾"},
+  {nome: "Obrigações Trabalhistas", valor: -150, categoria:"imposto", icon:"👥"},
+  {nome: "Despesas Antecipadas", valor: 50, categoria:"custos", icon:"📅"},
+  {nome: "Receitas Diferidas", valor: 100, categoria:"custos", icon:"📈"},
+  {nome: "Ajustes Contábeis", valor: -50, categoria:"auditoria", icon:"✏️"},
+  {nome: "Compliance Contábil", valor: 300, categoria:"relatorio", icon:"✅"}
 ];
 
 function gerarTabuleiro() {
@@ -132,8 +167,8 @@ function gerarTabuleiro() {
     if (cell === "vazio") {
       div.className = "vazio";
     } else {
-      div.className = "casa";
-      div.textContent = `${casas[cell].nome} (${casas[cell].valor>0?'+':'-'}R$${Math.abs(casas[cell].valor)})`;
+      div.className = `casa ${casas[cell].categoria}`;
+      div.innerHTML = `<div class='icon'>${casas[cell].icon}</div><div>${casas[cell].nome}</div><div>${casas[cell].valor>0?'+':'-'}R$${Math.abs(casas[cell].valor)}</div>`;
       posicoes.forEach((p, idx) => {
         if (p === cell) {
           div.innerHTML += `<div class='jogador'>${avatares[idx]}<br>${nomesJogadores[idx]}</div>`;
