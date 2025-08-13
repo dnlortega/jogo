@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Monopoly Contábil</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; }
+  h1, h2, p { text-align: center; }
+  #tabuleiro {
+    display: grid;
+    grid-template-columns: repeat(11, minmax(25px, 1fr));
+    grid-template-rows: repeat(11, minmax(25px, 1fr));
+    gap: 1px;
+    margin: 10px;
+  }
+  .casa {
+    background: white;
+    border: 1px solid #000;
+    font-size: 0.55em;
+    padding: 1px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .vazio {
+    background: transparent;
+    border: none;
+  }
+  .jogador {
+    font-size: 1.2em;
+    line-height: 1em;
+  }
+  #painel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    border-top: 2px solid #ccc;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  button {
+    font-size: 1.2em;
+    padding: 8px 16px;
+    margin: 5px;
+  }
+  #config {
+    max-width: 320px;
+    margin: 2em auto;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px #ccc;
+  }
+  #config input {
+    width: 90%;
+    font-size: 1em;
+    padding: 8px;
+    margin: 6px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  #config button {
+    width: 100%;
+  }
+</style>
+</head>
+<body>
+
+<div id="config">
+  <h2>Configurar Jogadores</h2>
+  <p>Digite os nomes dos jogadores (mínimo 2, máximo 4):</p>
+  <input type="text" id="player1" placeholder="Nome do jogador 1" />
+  <input type="text" id="player2" placeholder="Nome do jogador 2" />
+  <input type="text" id="player3" placeholder="Nome do jogador 3 (opcional)" />
+  <input type="text" id="player4" placeholder="Nome do jogador 4 (opcional)" />
+  <button onclick="startGame()">Começar Jogo</button>
+  <p id="error" style="color:red;"></p>
+</div>
+
+<h1 style="display:none;">Monopoly Contábil</h1>
+<div id="tabuleiro" style="display:none;"></div>
+<div id="painel" style="display:none;">
+  <p id="status"></p>
+  <button onclick="jogar()">🎲 Jogar Dado</button>
+</div>
+
+<script>
+let nomesJogadores = [];
+let avatares = ["😀", "😎", "🤓", "🤑"];
+let posicoes = [];
+let dinheiro = [];
+let jogadorAtual = 0;
+const casas = [
+  {nome: "Imposto de Renda", valor: -200}, {nome: "Auditoria Fiscal", valor: -150},
+  {nome: "Contabilidade de Custos", valor: 100}, {nome: "Balancete", valor: 50},
+  {nome: "Escrituração Fiscal", valor: -100}, {nome: "Conciliação Bancária", valor: 200},
+  {nome: "Planejamento Tributário", valor: 150}, {nome: "Análise de Balanços", valor: -50},
+  {nome: "Folha de Pagamento", valor: -100}, {nome: "Controle Patrimonial", valor: 200},
+  {nome: "Inventário", valor: -50}, {nome: "Auditoria Interna", valor: -150},
+  {nome: "Relatório Gerencial", valor: 100}, {nome: "ICMS", valor: -200},
+  {nome: "ISS", valor: -100}, {nome: "PIS/COFINS", valor: -150},
+  {nome: "Nota Fiscal Eletrônica", valor: 50}, {nome: "Análise de Demonstrativos", valor: 100},
+  {nome: "DRE", valor: 200}, {nome: "Balanço Patrimonial", valor: 300},
+  {nome: "IRPJ", valor: -200}, {nome: "Lucro Real", valor: 150},
+  {nome: "Lucro Presumido", valor: 100}, {nome: "DCTF", valor: -150},
+  {nome: "SPED Contábil", valor: -100}, {nome: "SPED Fiscal", valor: -200},
+  {nome: "Simples Nacional", valor: 200}, {nome: "Encerramento de Exercício", valor: 100},
+  {nome: "Ativo Imobilizado", valor: -150}, {nome: "Controle de Estoque", valor: 150},
+  {nome: "Auditoria Externa", valor: -200}, {nome: "Custo de Produção", valor: 100},
+  {nome: "Margem de Contribuição", valor: 200}, {nome: "Ponto de Equilíbrio", valor: 150},
+  {nome: "Provisões Contábeis", valor: -100}, {nome: "Obrigações Trabalhistas", valor: -150},
+  {nome: "Despesas Antecipadas", valor: 50}, {nome: "Receitas Diferidas", valor: 100},
+  {nome: "Ajustes Contábeis", valor: -50}, {nome: "Compliance Contábil", valor: 300}
+];
+
+function gerarTabuleiro() {
+  const t = document.getElementById("tabuleiro");
+  t.innerHTML = "";
+  const layout = Array(121).fill("vazio");
+  let ordem = [];
+  for (let i = 0; i < 11; i++) ordem.push(i);
+  for (let i = 1; i < 10; i++) ordem.push(i*11+10);
+  for (let i = 10; i >= 0; i--) ordem.push(110+i);
+  for (let i = 9; i > 0; i--) ordem.push(i*11);
+  ordem.forEach((pos, idx) => layout[pos] = idx);
+  layout.forEach(cell => {
+    const div = document.createElement("div");
+    if (cell === "vazio") {
+      div.className = "vazio";
+    } else {
+      div.className = "casa";
+      div.textContent = `${casas[cell].nome} (${casas[cell].valor>0?'+':'-'}R$${Math.abs(casas[cell].valor)})`;
+      posicoes.forEach((p, idx) => {
+        if (p === cell) {
+          div.innerHTML += `<div class='jogador'>${avatares[idx]}<br>${nomesJogadores[idx]}</div>`;
+        }
+      });
+    }
+    t.appendChild(div);
+  });
+}
+
+function jogar() {
+  const dado = Math.floor(Math.random()*6)+1;
+  posicoes[jogadorAtual] = (posicoes[jogadorAtual] + dado) % 40;
+  dinheiro[jogadorAtual] += casas[posicoes[jogadorAtual]].valor;
+  document.getElementById("status").textContent = `${nomesJogadores[jogadorAtual]} (${avatares[jogadorAtual]}) tirou ${dado} - ${casas[posicoes[jogadorAtual]].nome} (${casas[posicoes[jogadorAtual]].valor>0?'+':'-'}R$${Math.abs(casas[posicoes[jogadorAtual]].valor)}) | Saldo: R$${dinheiro[jogadorAtual]}`;
+  jogadorAtual = (jogadorAtual + 1) % posicoes.length;
+  gerarTabuleiro();
+}
+
+function startGame() {
+  const p1 = document.getElementById("player1").value.trim();
+  const p2 = document.getElementById("player2").value.trim();
+  const p3 = document.getElementById("player3").value.trim();
+  const p4 = document.getElementById("player4").value.trim();
+  const error = document.getElementById("error");
+  
+  let nomes = [p1, p2];
+  if (p3) nomes.push(p3);
+  if (p4) nomes.push(p4);
+  
+  if (nomes.length < 2) {
+    error.textContent = "Digite ao menos 2 nomes para começar.";
+    return;
+  }
+  if (nomes.some(n => n.length < 1)) {
+    error.textContent = "Todos os nomes preenchidos devem ter ao menos 1 caractere.";
+    return;
+  }
+  
+  nomesJogadores = nomes;
+  posicoes = new Array(nomesJogadores.length).fill(0);
+  dinheiro = new Array(nomesJogadores.length).fill(1500);
+  jogadorAtual = 0;
+  error.textContent = "";
+  
+  document.getElementById("config").style.display = "none";
+  document.querySelector("h1").style.display = "block";
+  document.getElementById("tabuleiro").style.display = "grid";
+  document.getElementById("painel").style.display = "flex";
+  
+  gerarTabuleiro();
+}
+</script>
+
+</body>
+</html>
