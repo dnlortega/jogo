@@ -2,177 +2,141 @@
 <html lang="pt-BR" >
 <head>
   <meta charset="UTF-8" />
-  <title>Monopoly Contábil Profissional com Ranking</title>
+  <title>Monopoly Contábil com Sidebar de Ranking</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    /* Reset e base */
-    * {
-      box-sizing: border-box;
-    }
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #e7f0fd;
       color: #222;
-      display: flex;
       min-height: 100vh;
-      align-items: flex-start;
+      display: flex;
       justify-content: center;
-      padding: 1rem;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-    h1, h2, p {
-      margin: 0.3rem 0 1rem;
-      text-align: center;
-      color: #0a3d62;
-      text-shadow: 1px 1px 3px #a4b0be;
+      user-select: none;
     }
 
-    /* Container geral tabuleiro + ranking */
+    /* Container geral com sidebar */
     #app {
       display: flex;
-      max-width: 900px;
+      max-width: 1000px;
       width: 100%;
       gap: 1rem;
-      flex-wrap: wrap;
-      justify-content: center;
+      padding: 1rem;
+      box-sizing: border-box;
+      position: relative;
     }
 
-    /* Container do jogo */
+    /* Conteúdo principal com tabuleiro e config */
     #container {
-      max-width: 480px;
-      width: 100%;
+      flex-grow: 1;
+      max-width: 700px;
       background: white;
       border-radius: 12px;
       box-shadow: 0 12px 25px rgba(0,0,0,0.15);
-      padding: 1rem 1.5rem 4.5rem;
+      padding: 1rem 1.5rem 5rem;
       display: flex;
       flex-direction: column;
       align-items: center;
       position: relative;
-      flex-shrink: 0;
     }
 
-    /* Tabuleiro responsivo */
+    /* Tabuleiro */
     #tabuleiro {
       display: grid;
       grid-template-columns: repeat(11, 1fr);
       grid-template-rows: repeat(11, 1fr);
       gap: 3px;
       width: 100%;
-      max-width: 420px;
+      max-width: 100vw;
+      max-height: 100vw;
       aspect-ratio: 1 / 1;
       margin-bottom: 1rem;
       border-radius: 12px;
       box-shadow: 0 0 15px #1e90ff66;
       background: #f0f4f9;
-      user-select: none;
     }
-    .casa {
-      background: linear-gradient(145deg, #ffffff, #d4e0f1);
-      border-radius: 8px;
-      box-shadow: inset 3px 3px 6px #b8c6db,
-                  inset -3px -3px 6px #ffffff;
-      border: 1.5px solid #1e90ff;
-      font-size: 0.75em;
-      padding: 6px 5px 6px 5px;
-      color: #1e3c72;
+
+    /* Ranking sidebar fixa */
+    #ranking {
+      width: 280px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 14px 30px rgba(0,0,0,0.15);
+      padding: 1rem 1.5rem;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      transition: background 0.3s ease;
-      cursor: default;
-      text-align: center;
-      line-height: 1.1em;
-      position: relative;
+      gap: 1rem;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      position: sticky;
+      top: 20px;
+      align-self: flex-start;
     }
-    .casa:hover {
-      background: linear-gradient(145deg, #d1e6ff, #a8cbff);
-      box-shadow: 0 0 15px #5599ff;
-      color: #103c9f;
-    }
-    .vazio {
-      background: transparent;
-      border: none;
-      pointer-events: none;
-    }
-    .icon {
-      font-size: 1.6em;
-      margin-bottom: 4px;
-      filter: drop-shadow(0 0 1px #4267b2);
-      user-select: none;
-    }
-    .jogador {
-      font-size: 1.3em;
-      font-weight: 700;
-      line-height: 1.1em;
-      margin-top: 6px;
+    #ranking h2 {
+      margin: 0 0 0.8rem;
       color: #0a3d62;
-      text-shadow: 1px 1px 1px #a0b8ff;
-      word-break: break-word;
-      user-select: none;
+      text-shadow: 1px 1px 2px #a4b0be;
+      font-weight: 800;
+      font-size: 1.5rem;
+    }
+    .player-rank {
+      background: #f0f7ff;
+      border-radius: 12px;
+      box-shadow: inset 2px 2px 6px #c7d9ff,
+                  inset -2px -2px 6px #ffffff;
+      padding: 0.7rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-weight: 700;
+      color: #1e3c72;
+      border-left: 6px solid transparent;
+      transition: background 0.3s ease;
+    }
+    .player-rank:hover {
+      background: #d2e3ff;
+      border-left-color: #1e90ff;
+      cursor: default;
+    }
+    .player-rank .avatar {
+      font-size: 2.3rem;
+      text-shadow: 1px 1px 2px #8fbaff;
+      width: 48px;
+      text-align: center;
+    }
+    .player-rank .info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      flex-grow: 1;
+    }
+    .player-rank .info .name {
+      font-size: 1.2rem;
+      color: #0a3d62;
+      font-weight: 800;
+    }
+    .player-rank .info .score {
+      font-size: 1rem;
+      color: #4a6ca8;
+      font-weight: 600;
+    }
+    .player-rank .pos {
+      font-weight: 900;
+      font-size: 1.4rem;
+      width: 28px;
+      text-align: center;
+      color: #0a3d62;
     }
 
-    /* Cores por categoria (gradientes) */
-    .imposto {
-      background: linear-gradient(145deg, #ffd6d6, #ff9a9a);
-      border-color: #ff5c5c;
-      color: #7a0000;
-    }
-    .imposto:hover {
-      background: linear-gradient(145deg, #ff9e9e, #ff6262);
-      box-shadow: 0 0 20px #ff0000cc;
-      color: #4a0000;
-    }
-    .auditoria {
-      background: linear-gradient(145deg, #c6deff, #7abaff);
-      border-color: #2b87ff;
-      color: #003d7a;
-    }
-    .auditoria:hover {
-      background: linear-gradient(145deg, #7fb8ff, #338dff);
-      box-shadow: 0 0 20px #0057ffcc;
-      color: #002655;
-    }
-    .custos {
-      background: linear-gradient(145deg, #d4f4d7, #91d77f);
-      border-color: #53a938;
-      color: #2f5600;
-    }
-    .custos:hover {
-      background: linear-gradient(145deg, #a3e88a, #63b72c);
-      box-shadow: 0 0 20px #40a30dcc;
-      color: #214300;
-    }
-    .relatorio {
-      background: linear-gradient(145deg, #fff8cc, #ffe066);
-      border-color: #ffdb4d;
-      color: #7a6b00;
-    }
-    .relatorio:hover {
-      background: linear-gradient(145deg, #ffea60, #ffcd33);
-      box-shadow: 0 0 20px #f6c90ccc;
-      color: #4a4200;
-    }
-    .outros {
-      background: linear-gradient(145deg, #e4e5e7, #b3b5b9);
-      border-color: #8f9297;
-      color: #42464b;
-    }
-    .outros:hover {
-      background: linear-gradient(145deg, #b1b4b9, #7a7d83);
-      box-shadow: 0 0 20px #666a70cc;
-      color: #222428;
-    }
-
-    /* Painel fixo no rodapé */
+    /* Painel inferior fixo */
     #painel {
       position: fixed;
       bottom: 0;
-      left: 0;
+      left: 50%;
+      transform: translateX(-50%);
       width: 100%;
-      max-width: 480px;
+      max-width: 700px;
       background: #0a3d62;
       color: white;
       padding: 0.9rem 1rem;
@@ -213,7 +177,7 @@
       box-shadow: none;
     }
 
-    /* Formulário de configuração */
+    /* Formulário configuração */
     #config {
       width: 100%;
       max-width: 480px;
@@ -288,102 +252,75 @@
       user-select: none;
     }
 
-    /* Ranking lateral */
-    #ranking {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 14px 30px rgba(0,0,0,0.15);
-      padding: 1rem 1.5rem;
-      max-width: 300px;
-      width: 100%;
-      flex-shrink: 0;
+    /* Casas categoria */
+    .casa.imposto {
+      background: linear-gradient(145deg, #ffd6d6, #ff9a9a);
+      border-color: #ff5c5c;
+      color: #7a0000;
+    }
+    .casa.auditoria {
+      background: linear-gradient(145deg, #c6deff, #7abaff);
+      border-color: #2b87ff;
+      color: #003d7a;
+    }
+    .casa.custos {
+      background: linear-gradient(145deg, #d4f4d7, #91d77f);
+      border-color: #53a938;
+      color: #2f5600;
+    }
+    .casa.relatorio {
+      background: linear-gradient(145deg, #fff8cc, #ffe066);
+      border-color: #ffdb4d;
+      color: #7a6b00;
+    }
+    .casa.outros {
+      background: linear-gradient(145deg, #e4e5e7, #b3b5b9);
+      border-color: #8f9297;
+      color: #42464b;
+    }
+
+    /* Ícones e texto dentro casas */
+    .casa .icon {
+      font-size: 1.6em;
+      margin-bottom: 4px;
+      filter: drop-shadow(0 0 1px #4267b2);
       user-select: none;
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-      height: fit-content;
     }
-    #ranking h2 {
-      color: #0a3d62;
-      text-shadow: 1px 1px 2px #a4b0be;
-      margin-bottom: 0.8rem;
-      font-weight: 800;
-      font-size: 1.5rem;
+    .casa div {
+      font-size: 0.75em;
+      line-height: 1.1em;
     }
-    .player-rank {
-      background: #f0f7ff;
-      border-radius: 12px;
-      box-shadow: inset 2px 2px 6px #c7d9ff,
-                  inset -2px -2px 6px #ffffff;
-      padding: 0.7rem 1rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
+    .jogador {
+      font-size: 1.3em;
       font-weight: 700;
-      color: #1e3c72;
-      transition: background 0.3s ease;
-      border-left: 6px solid transparent;
-    }
-    .player-rank:hover {
-      background: #d2e3ff;
-      border-left-color: #1e90ff;
-      cursor: default;
-    }
-    .player-rank .avatar {
-      font-size: 2.3rem;
-      text-shadow: 1px 1px 2px #8fbaff;
-      user-select: none;
-      width: 48px;
-      text-align: center;
-    }
-    .player-rank .info {
-      display: flex;
-      flex-direction: column;
-      gap: 0.15rem;
-      flex-grow: 1;
-    }
-    .player-rank .info .name {
-      font-size: 1.2rem;
+      line-height: 1.1em;
+      margin-top: 6px;
       color: #0a3d62;
-      font-weight: 800;
-    }
-    .player-rank .info .score {
-      font-size: 1rem;
-      color: #4a6ca8;
-      font-weight: 600;
-    }
-    .player-rank .pos {
-      font-weight: 900;
-      font-size: 1.4rem;
-      width: 28px;
-      text-align: center;
-      color: #0a3d62;
+      text-shadow: 1px 1px 1px #a0b8ff;
+      word-break: break-word;
       user-select: none;
     }
 
-    /* Scroll interno para ranking se muita altura */
-    #ranking {
-      max-height: 480px;
-      overflow-y: auto;
-    }
-
-    /* Responsividade */
-    @media (max-width: 850px) {
+    /* Responsive mobile */
+    @media (max-width: 900px) {
       #app {
         flex-direction: column;
-        align-items: center;
+        padding: 0.5rem 0.5rem 4rem;
       }
       #ranking {
-        max-width: 480px;
-        width: 90vw;
+        width: 100%;
+        max-height: none;
+        position: relative;
+        top: auto;
         margin-bottom: 1rem;
       }
       #container {
-        max-width: 480px;
-        width: 90vw;
+        max-width: 100vw;
+        padding-bottom: 5rem;
+        margin-bottom: 0;
       }
       #painel {
-        max-width: 90vw !important;
+        max-width: 100vw !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
       }
@@ -475,95 +412,85 @@
       const layout = Array(121).fill("vazio");
       let ordem = [];
       for (let i = 0; i < 11; i++) ordem.push(i);
-      for (let i = 1; i < 10; i++) ordem.push(i*11+10);
-      for (let i = 10; i >= 0; i--) ordem.push(110+i);
-      for (let i = 9; i > 0; i--) ordem.push(i*11);
-      ordem.forEach((pos, idx) => layout[pos] = idx);
-      layout.forEach(cell => {
-        const div = document.createElement("div");
-        if (cell === "vazio") {
-          div.className = "vazio";
-        } else {
-          div.className = "casa " + casas[cell].categoria;
-          div.innerHTML = `<div class="icon" title="${casas[cell].nome}">${casas[cell].icon}</div>
-                           <div>${casas[cell].nome}</div>
-                           <div>${casas[cell].valor>0?'+':'-'}R$${Math.abs(casas[cell].valor)}</div>`;
-          posicoes.forEach((p, idx) => {
-            if (p === cell) {
-              div.innerHTML += `<div class='jogador'>${avatares[idx]}<br>${nomesJogadores[idx]}</div>`;
-            }
-          });
-        }
-        t.appendChild(div);
+      for (let i = 1; i < 10; i++) ordem.push(i * 11 + 10);
+      for (let i = 10; i >= 0; i--) ordem.push(i + 110);
+      for (let i = 9; i >= 1; i--) ordem.push(i * 11);
+      
+      for(let i = 0; i < 121; i++){
+        let casa = document.createElement("div");
+        casa.classList.add("casa");
+        casa.classList.add("vazio");
+        t.appendChild(casa);
+      }
+
+      ordem.forEach((pos, i) => {
+        const casaInfo = casas[i] || {nome:"Livre", categoria:"outros", icon:"⬜"};
+        const c = t.children[pos];
+        c.classList.remove("vazio");
+        c.classList.add(casaInfo.categoria);
+        c.innerHTML = `<div class="icon">${casaInfo.icon}</div><div>${casaInfo.nome}</div>`;
       });
     }
 
-    function atualizarRanking() {
-      const rankDiv = document.getElementById("ranking-list");
-      rankDiv.innerHTML = "";
-      let ranking = nomesJogadores.map((nome, i) => ({
-        nome,
-        avatar: avatares[i],
-        dinheiro: dinheiro[i]
-      }));
-      ranking.sort((a,b) => b.dinheiro - a.dinheiro);
-      ranking.forEach((player, idx) => {
-        const div = document.createElement("div");
-        div.className = "player-rank";
-        div.innerHTML = `<div class="pos">${idx+1}</div>
-                         <div class="avatar" title="${player.nome}">${player.avatar}</div>
-                         <div class="info">
-                           <div class="name">${player.nome}</div>
-                           <div class="score">R$${player.dinheiro}</div>
-                         </div>`;
-        rankDiv.appendChild(div);
-      });
-    }
-
-    function jogar() {
-      const dado = Math.floor(Math.random()*6)+1;
-      posicoes[jogadorAtual] = (posicoes[jogadorAtual] + dado) % 40;
-      dinheiro[jogadorAtual] += casas[posicoes[jogadorAtual]].valor;
-      document.getElementById("status").textContent = `${nomesJogadores[jogadorAtual]} (${avatares[jogadorAtual]}) tirou ${dado} - ${casas[posicoes[jogadorAtual]].nome} (${casas[posicoes[jogadorAtual]].valor>0?'+':'-'}R$${Math.abs(casas[posicoes[jogadorAtual]].valor)}) | Saldo: R$${dinheiro[jogadorAtual]}`;
-      jogadorAtual = (jogadorAtual + 1) % posicoes.length;
-      gerarTabuleiro();
-      atualizarRanking();
-    }
-
-    function startGame() {
+    function startGame(){
       const p1 = document.getElementById("player1").value.trim();
       const p2 = document.getElementById("player2").value.trim();
       const p3 = document.getElementById("player3").value.trim();
       const p4 = document.getElementById("player4").value.trim();
       const error = document.getElementById("error");
-
-      let nomes = [p1, p2];
-      if (p3) nomes.push(p3);
-      if (p4) nomes.push(p4);
-
-      if (nomes.length < 2) {
-        error.textContent = "Digite ao menos 2 nomes para começar.";
+      nomesJogadores = [p1, p2];
+      if(p3) nomesJogadores.push(p3);
+      if(p4) nomesJogadores.push(p4);
+      if(nomesJogadores.length < 2){
+        error.textContent = "Digite pelo menos 2 nomes.";
         return;
       }
-      if (nomes.some(n => n.length < 1)) {
-        error.textContent = "Todos os nomes preenchidos devem ter ao menos 1 caractere.";
-        return;
-      }
-
-      nomesJogadores = nomes;
-      posicoes = new Array(nomesJogadores.length).fill(0);
-      dinheiro = new Array(nomesJogadores.length).fill(1500);
-      jogadorAtual = 0;
       error.textContent = "";
+      posicoes = new Array(nomesJogadores.length).fill(0);
+      dinheiro = new Array(nomesJogadores.length).fill(1000);
+      jogadorAtual = 0;
 
       document.getElementById("config").style.display = "none";
-      document.querySelector("h1").style.display = "block";
-      document.getElementById("tabuleiro").style.display = "grid";
-      document.getElementById("painel").style.display = "flex";
-      document.getElementById("ranking").style.display = "flex";
-
+      document.querySelector("#container h1").style.display = "block";
+      const tab = document.getElementById("tabuleiro");
+      tab.style.display = "grid";
       gerarTabuleiro();
       atualizarRanking();
+      atualizarStatus();
+
+      document.getElementById("ranking").style.display = "flex";
+      document.getElementById("painel").style.display = "flex";
+    }
+
+    function atualizarRanking(){
+      const rankingDiv = document.getElementById("ranking-list");
+      rankingDiv.innerHTML = "";
+      // Ranking ordenado por dinheiro decrescente
+      const ranking = nomesJogadores.map((nome,i) => ({nome, dinheiro: dinheiro[i], avatar: avatares[i], pos:i}));
+      ranking.sort((a,b) => b.dinheiro - a.dinheiro);
+      ranking.forEach((jog, idx) => {
+        const div = document.createElement("div");
+        div.classList.add("player-rank");
+        div.innerHTML = `<div class="pos">${idx+1}</div><div class="avatar">${jog.avatar}</div><div class="info"><div class="name">${jog.nome}</div><div class="score">R$ ${jog.dinheiro}</div></div>`;
+        rankingDiv.appendChild(div);
+      });
+    }
+
+    function atualizarStatus(){
+      const status = document.getElementById("status");
+      status.textContent = `Jogador atual: ${nomesJogadores[jogadorAtual]} (R$ ${dinheiro[jogadorAtual]})`;
+    }
+
+    function jogar(){
+      const dado = Math.floor(Math.random() * 6) + 1;
+      alert(`Você tirou ${dado}!`);
+      posicoes[jogadorAtual] = (posicoes[jogadorAtual] + dado) % casas.length;
+      const casaAtual = casas[posicoes[jogadorAtual]];
+      dinheiro[jogadorAtual] += casaAtual.valor;
+      alert(`${nomesJogadores[jogadorAtual]} caiu na casa "${casaAtual.nome}" e ${(casaAtual.valor>=0) ? "ganhou" : "perdeu"} R$ ${Math.abs(casaAtual.valor)}.`);
+      jogadorAtual = (jogadorAtual + 1) % nomesJogadores.length;
+      atualizarRanking();
+      atualizarStatus();
     }
   </script>
 </body>
