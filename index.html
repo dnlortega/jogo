@@ -2,23 +2,28 @@
 <html lang="pt-BR" >
 <head>
   <meta charset="UTF-8" />
-  <title>Monopoly Contábil - Vertical</title>
+  <title>Monopoly Contábil - Melhorado</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+    * {
+      box-sizing: border-box;
+    }
     body {
       margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #e7f0fd;
-      color: #222;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+        Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue',
+        sans-serif;
+      background: #f0f4ff;
+      color: #1e293b;
       min-height: 100vh;
       display: flex;
       justify-content: center;
       user-select: none;
     }
-
     #app {
       display: flex;
-      max-width: 800px;
+      max-width: 900px;
       width: 100%;
       gap: 1rem;
       padding: 1rem;
@@ -27,75 +32,162 @@
       flex-wrap: nowrap;
       align-items: flex-start;
     }
-
     #container {
       flex-grow: 1;
-      max-width: 480px;
-      background: white;
+      max-width: 500px;
+      background: #fff;
       border-radius: 12px;
-      box-shadow: 0 12px 25px rgba(0,0,0,0.15);
-      padding: 1rem 1.5rem 5rem;
+      box-shadow:
+        0 4px 6px rgb(0 0 0 / 0.1),
+        0 1px 3px rgb(0 0 0 / 0.06);
+      padding: 1rem 1.5rem 2rem;
       display: flex;
       flex-direction: column;
       align-items: center;
       position: relative;
     }
 
+    h1 {
+      margin: 0 0 12px;
+      font-weight: 900;
+      color: #2563eb;
+      font-size: 2rem;
+      text-shadow: 0 1px 2px #bfdbfe;
+      user-select: none;
+    }
+
+    #top-controls {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 12px;
+    }
+    #painel button {
+      background: #3b82f6;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 1.3em;
+      padding: 0.6rem 1.4rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 5px 20px #3b82f6cc;
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+      user-select: none;
+      width: 180px;
+    }
+    #painel button:hover {
+      background: #1e40af;
+      box-shadow: 0 8px 25px #1e40afcc;
+    }
+    #painel button:active {
+      background: #1e3a8a;
+      box-shadow: none;
+    }
+    #status {
+      font-size: 1.05rem;
+      color: #1e40af;
+      font-weight: 600;
+      user-select: none;
+      max-width: 100%;
+      text-align: center;
+    }
+
     #tabuleiro {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
       width: 100%;
-      max-height: 80vh;
+      max-height: 65vh;
       overflow-y: auto;
-      padding-right: 4px;
+      padding-right: 6px;
     }
-
     .casa {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      border-radius: 10px;
+      gap: 14px;
+      padding: 14px 20px;
+      border-radius: 14px;
       font-weight: 700;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-      color: #222;
-      user-select: none;
+      box-shadow:
+        0 2px 6px rgb(0 0 0 / 0.1);
+      color: #1e293b;
       cursor: default;
-      transition: transform 0.2s ease;
+      user-select: none;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      background: white;
     }
     .casa:hover {
-      transform: scale(1.03);
-      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      transform: translateY(-4px);
+      box-shadow:
+        0 8px 20px rgb(0 0 0 / 0.12);
+    }
+    .casa.ativo {
+      animation: pulseGlow 1s ease infinite alternate;
+      box-shadow:
+        0 0 12px 3px #2563ebaa;
+    }
+    @keyframes pulseGlow {
+      from {
+        box-shadow:
+          0 0 8px 2px #3b82f6cc;
+      }
+      to {
+        box-shadow:
+          0 0 18px 6px #2563ebcc;
+      }
     }
     .casa .icon {
-      font-size: 1.9rem;
-      min-width: 36px;
+      font-size: 2.2rem;
+      min-width: 42px;
       text-align: center;
-      user-select: none;
-      text-shadow: 1px 1px 2px #8db2ff;
+      text-shadow: 1px 1px 3px #93c5fd;
     }
-
-    .casa.imposto { background: #ffe1e1; border-left: 6px solid #ff5c5c; color: #7a0000; }
-    .casa.auditoria { background: #d2e6ff; border-left: 6px solid #2b87ff; color: #003d7a; }
-    .casa.custos { background: #dbf3d8; border-left: 6px solid #53a938; color: #2f5600; }
-    .casa.relatorio { background: #fff9db; border-left: 6px solid #ffdb4d; color: #7a6b00; }
-    .casa.outros { background: #e9e9e9; border-left: 6px solid #8f9297; color: #42464b; }
-
-    /* Jogadores em casa */
+    /* Categorias de casas com cores suaves */
+    .casa.imposto {
+      border-left: 6px solid #ef4444;
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .casa.auditoria {
+      border-left: 6px solid #3b82f6;
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    .casa.custos {
+      border-left: 6px solid #22c55e;
+      background: #dcfce7;
+      color: #14532d;
+    }
+    .casa.relatorio {
+      border-left: 6px solid #eab308;
+      background: #fef3c7;
+      color: #854d0e;
+    }
+    .casa.outros {
+      border-left: 6px solid #6b7280;
+      background: #f3f4f6;
+      color: #374151;
+    }
+    /* Jogadores na casa */
     .jogadores-casa {
       margin-left: auto;
       display: flex;
-      gap: 4px;
-      font-size: 1.3rem;
+      gap: 6px;
+      font-size: 1.7rem;
       user-select: none;
     }
 
+    /* Sidebar ranking */
     #ranking {
       width: 280px;
-      background: white;
+      background: #fff;
       border-radius: 16px;
-      box-shadow: 0 14px 30px rgba(0,0,0,0.15);
+      box-shadow:
+        0 12px 28px rgb(0 0 0 / 0.12);
       padding: 1rem 1.5rem;
       display: flex;
       flex-direction: column;
@@ -105,189 +197,155 @@
       position: sticky;
       top: 20px;
       align-self: flex-start;
+      user-select: none;
     }
     #ranking h2 {
       margin: 0 0 0.8rem;
-      color: #0a3d62;
-      text-shadow: 1px 1px 2px #a4b0be;
-      font-weight: 800;
-      font-size: 1.5rem;
+      color: #1e40af;
+      font-weight: 900;
+      font-size: 1.6rem;
+      text-shadow: 0 1px 2px #bfdbfe;
+      letter-spacing: 0.04em;
     }
     .player-rank {
-      background: #f0f7ff;
-      border-radius: 12px;
-      box-shadow: inset 2px 2px 6px #c7d9ff,
-                  inset -2px -2px 6px #ffffff;
-      padding: 0.7rem 1rem;
+      background: #eff6ff;
+      border-radius: 14px;
+      box-shadow:
+        inset 2px 2px 6px #dbeafe,
+        inset -2px -2px 6px #ffffff;
+      padding: 0.9rem 1.2rem;
       display: flex;
       align-items: center;
       gap: 1rem;
       font-weight: 700;
-      color: #1e3c72;
+      color: #1e40af;
       border-left: 6px solid transparent;
-      transition: background 0.3s ease;
+      transition: background 0.25s ease, border-color 0.25s ease;
+      cursor: default;
+      user-select: none;
     }
     .player-rank:hover {
-      background: #d2e3ff;
-      border-left-color: #1e90ff;
-      cursor: default;
+      background: #dbeafe;
+      border-left-color: #3b82f6;
     }
     .player-rank .avatar {
-      font-size: 2.3rem;
-      text-shadow: 1px 1px 2px #8fbaff;
+      font-size: 2.8rem;
+      text-shadow: 1px 1px 3px #93c5fd;
       width: 48px;
       text-align: center;
+      user-select: none;
     }
     .player-rank .info {
       display: flex;
       flex-direction: column;
-      gap: 0.15rem;
+      gap: 0.2rem;
       flex-grow: 1;
     }
     .player-rank .info .name {
-      font-size: 1.2rem;
-      color: #0a3d62;
+      font-size: 1.25rem;
       font-weight: 800;
+      color: #1e3a8a;
+      user-select: text;
     }
     .player-rank .info .score {
       font-size: 1rem;
-      color: #4a6ca8;
       font-weight: 600;
+      color: #2563eb;
+      user-select: text;
     }
     .player-rank .pos {
       font-weight: 900;
-      font-size: 1.4rem;
-      width: 28px;
+      font-size: 1.6rem;
+      width: 34px;
       text-align: center;
-      color: #0a3d62;
-    }
-
-    #painel {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 480px;
-      background: #0a3d62;
-      color: white;
-      padding: 0.9rem 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 -3px 10px #113f7dcc;
-      border-top-left-radius: 12px;
-      border-top-right-radius: 12px;
-      font-weight: 600;
-      user-select: none;
-      z-index: 10;
-    }
-    #status {
-      font-size: 1em;
-      max-width: 65%;
-      word-wrap: break-word;
-    }
-    #painel button {
-      background: #1e90ff;
-      border: none;
-      border-radius: 8px;
-      color: white;
-      font-size: 1.2em;
-      padding: 0.6rem 1.3rem;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 5px 15px #1e90ffaa;
-      transition: background 0.3s ease, box-shadow 0.3s ease;
+      color: #1e40af;
       user-select: none;
     }
-    #painel button:hover {
-      background: #1266cc;
-      box-shadow: 0 7px 20px #1266ccbb;
-    }
-    #painel button:active {
-      background: #0a3d62;
-      box-shadow: none;
-    }
 
+    /* Config inicial */
     #config {
       width: 100%;
-      max-width: 480px;
+      max-width: 500px;
       background: white;
       padding: 1.5rem 2rem 2rem;
       border-radius: 12px;
-      box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+      box-shadow:
+        0 10px 30px rgb(0 0 0 / 0.1);
       margin-bottom: 2rem;
       user-select: none;
     }
     #config h2 {
-      margin-bottom: 0.5rem;
-      color: #0a3d62;
-      text-shadow: 1px 1px 2px #a4b0be;
+      margin-bottom: 0.6rem;
+      color: #2563eb;
+      font-weight: 900;
+      font-size: 1.6rem;
+      text-shadow: 0 1px 2px #93c5fd;
     }
     #config p {
-      font-size: 0.9rem;
+      font-size: 1rem;
       margin-bottom: 1rem;
-      color: #334d6e;
+      color: #4b6cb7;
+      font-weight: 600;
     }
     #config input {
       width: 100%;
-      font-size: 1.1em;
+      font-size: 1.15em;
       padding: 0.7rem 1rem;
       margin-bottom: 1rem;
-      border-radius: 8px;
-      border: 2px solid #a4b0be;
+      border-radius: 10px;
+      border: 2px solid #a5b4fc;
       transition: border-color 0.3s ease;
       outline-offset: 2px;
       outline-color: transparent;
-      color: #0a3d62;
-      font-weight: 600;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #1e293b;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
     }
     #config input::placeholder {
-      color: #a4b0be;
+      color: #a5b4fc;
       font-weight: 500;
     }
     #config input:focus {
-      border-color: #1e90ff;
-      outline-color: #1e90ff;
+      border-color: #2563eb;
+      outline-color: #2563eb;
     }
     #config button {
       width: 100%;
-      background: #1e90ff;
+      background: #2563eb;
       color: white;
       border: none;
-      border-radius: 10px;
-      padding: 0.8rem;
-      font-size: 1.2em;
-      font-weight: 700;
+      border-radius: 12px;
+      padding: 0.9rem;
+      font-size: 1.3em;
+      font-weight: 900;
       cursor: pointer;
-      box-shadow: 0 8px 18px #1e90ffaa;
+      box-shadow: 0 10px 25px #2563ebcc;
       transition: background 0.3s ease, box-shadow 0.3s ease;
       user-select: none;
     }
     #config button:hover {
-      background: #1266cc;
-      box-shadow: 0 10px 25px #1266ccbb;
+      background: #1e40af;
+      box-shadow: 0 14px 35px #1e40afcc;
     }
     #config button:active {
-      background: #0a3d62;
+      background: #1e3a8a;
       box-shadow: none;
     }
     #error {
-      color: #cc4444;
+      color: #dc2626;
       font-weight: 700;
-      margin-top: -0.5rem;
+      margin-top: -0.6rem;
       margin-bottom: 1rem;
-      min-height: 1.3em;
+      min-height: 1.4em;
       text-align: center;
       user-select: none;
     }
 
-    /* Responsive */
+    /* Responsividade */
     @media (max-width: 780px) {
       #app {
         flex-direction: column;
-        padding: 0.5rem 0.5rem 4rem;
+        padding: 0.5rem 0.5rem 5rem;
       }
       #ranking {
         width: 100%;
@@ -295,6 +353,7 @@
         position: relative;
         top: auto;
         margin-bottom: 1rem;
+        border-radius: 12px;
       }
       #container {
         max-width: 100vw;
@@ -305,6 +364,22 @@
         max-width: 100vw !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
+      }
+      .casa {
+        font-size: 0.95rem;
+        padding: 12px 16px;
+      }
+      .casa .icon {
+        font-size: 1.9rem;
+        min-width: 36px;
+      }
+      .player-rank .avatar {
+        font-size: 2rem;
+        width: 40px;
+      }
+      #painel button {
+        width: 140px;
+        font-size: 1.1rem;
       }
     }
   </style>
@@ -324,6 +399,12 @@
       </div>
 
       <h1 style="display:none;">Monopoly Contábil</h1>
+
+      <div id="top-controls" style="display:none;">
+        <button onclick="jogar()">🎲 Jogar Dado</button>
+        <p id="status"></p>
+      </div>
+
       <div id="tabuleiro" style="display:none;"></div>
     </div>
 
@@ -331,11 +412,6 @@
       <h2>Ranking</h2>
       <div id="ranking-list"></div>
     </aside>
-  </div>
-
-  <div id="painel" style="display:none;">
-    <p id="status"></p>
-    <button onclick="jogar()">🎲 Jogar Dado</button>
   </div>
 
   <script>
@@ -377,49 +453,26 @@
       {nome: "Ativo Imobilizado", valor: -150, categoria:"custos", icon:"🏗️"},
       {nome: "Controle de Estoque", valor: 150, categoria:"custos", icon:"📦"},
       {nome: "Auditoria Externa", valor: -200, categoria:"auditoria", icon:"🔎"},
-      {nome: "Custo de Produção", valor: 100, categoria:"custos", icon:"🏭"},
-      {nome: "Margem de Contribuição", valor: 200, categoria:"custos", icon:"💹"},
-      {nome: "Ponto de Equilíbrio", valor: 150, categoria:"custos", icon:"⚖️"},
-      {nome: "Provisões Contábeis", valor: -100, categoria:"auditoria", icon:"📜"},
-      {nome: "Obrigações Trabalhistas", valor: -150, categoria:"imposto", icon:"🧾"},
-      {nome: "Despesas Antecipadas", valor: 50, categoria:"custos", icon:"💳"},
-      {nome: "Receitas Diferidas", valor: 100, categoria:"relatorio", icon:"📄"},
-      {nome: "Ajustes Contábeis", valor: -50, categoria:"auditoria", icon:"🧾"},
-      {nome: "Compliance Contábil", valor: 300, categoria:"relatorio", icon:"✅"}
+      {nome: "Custo de Produção", valor: 200, categoria:"custos", icon:"🏭"},
+      {nome: "Relatório Financeiro", valor: 150, categoria:"relatorio", icon:"💼"},
+      {nome: "IRRF", valor: -100, categoria:"imposto", icon:"💳"},
+      {nome: "Lucro Líquido", valor: 250, categoria:"custos", icon:"💰"},
+      {nome: "Demonstração de Fluxo", valor: 200, categoria:"relatorio", icon:"💹"},
+      {nome: "Conciliação Contábil", valor: 100, categoria:"custos", icon:"🔗"},
+      {nome: "Balanço de Verificação", valor: 150, categoria:"relatorio", icon:"📊"},
+      {nome: "IRPF", valor: -200, categoria:"imposto", icon:"🧾"},
+      {nome: "Contas a Pagar", valor: -100, categoria:"custos", icon:"📉"},
+      {nome: "Contas a Receber", valor: 150, categoria:"custos", icon:"📈"},
+      {nome: "DAS", valor: -150, categoria:"imposto", icon:"📄"},
+      {nome: "Relatório Analítico", valor: 100, categoria:"relatorio", icon:"📚"},
+      {nome: "Análise Tributária", valor: 150, categoria:"imposto", icon:"📊"},
+      {nome: "Relatório Fiscal", valor: 100, categoria:"relatorio", icon:"📄"},
+      {nome: "IRRF Retido", valor: -100, categoria:"imposto", icon:"💵"},
+      {nome: "Contabilidade Gerencial", valor: 200, categoria:"custos", icon:"📋"},
+      {nome: "Auditoria Contábil", valor: -150, categoria:"auditoria", icon:"🧐"},
+      {nome: "Relatório Consolidado", valor: 300, categoria:"relatorio", icon:"📈"},
+      {nome: "Planejamento Financeiro", valor: 250, categoria:"custos", icon:"💼"},
     ];
-
-    function gerarTabuleiro() {
-      const t = document.getElementById("tabuleiro");
-      t.innerHTML = "";
-
-      casas.forEach((casa, i) => {
-        const div = document.createElement("div");
-        div.classList.add("casa", casa.categoria);
-        div.innerHTML = `
-          <div class="icon">${casa.icon}</div>
-          <div>${casa.nome} (${casa.valor>=0?"+":"-"}R$${Math.abs(casa.valor)})</div>
-          <div class="jogadores-casa"></div>
-        `;
-        t.appendChild(div);
-      });
-
-      // Atualizar posições dos jogadores nas casas
-      atualizarJogadoresNoTabuleiro();
-    }
-
-    function atualizarJogadoresNoTabuleiro() {
-      const casasDivs = document.querySelectorAll("#tabuleiro .casa");
-      casasDivs.forEach(div => {
-        const playersDiv = div.querySelector(".jogadores-casa");
-        playersDiv.innerHTML = "";
-      });
-
-      posicoes.forEach((pos, i) => {
-        const casaDiv = document.querySelectorAll("#tabuleiro .casa")[pos];
-        const playersDiv = casaDiv.querySelector(".jogadores-casa");
-        playersDiv.innerHTML += avatares[i];
-      });
-    }
 
     function startGame() {
       const p1 = document.getElementById("player1").value.trim();
@@ -427,71 +480,129 @@
       const p3 = document.getElementById("player3").value.trim();
       const p4 = document.getElementById("player4").value.trim();
       const error = document.getElementById("error");
-      nomesJogadores = [p1, p2];
-      if (p3) nomesJogadores.push(p3);
-      if (p4) nomesJogadores.push(p4);
+
+      nomesJogadores = [];
+      if(p1) nomesJogadores.push(p1);
+      if(p2) nomesJogadores.push(p2);
+      if(p3) nomesJogadores.push(p3);
+      if(p4) nomesJogadores.push(p4);
+
       if (nomesJogadores.length < 2) {
-        error.textContent = "Digite pelo menos 2 nomes.";
+        error.textContent = "Por favor, insira pelo menos 2 nomes de jogadores.";
+        return;
+      }
+      if (nomesJogadores.length > 4) {
+        error.textContent = "No máximo 4 jogadores são permitidos.";
         return;
       }
       error.textContent = "";
+
+      // Inicializar posições e dinheiro
       posicoes = new Array(nomesJogadores.length).fill(0);
       dinheiro = new Array(nomesJogadores.length).fill(1000);
       jogadorAtual = 0;
 
+      // Esconder config e mostrar jogo
       document.getElementById("config").style.display = "none";
-      document.querySelector("#container h1").style.display = "block";
-      const tab = document.getElementById("tabuleiro");
-      tab.style.display = "flex";
-      gerarTabuleiro();
-      atualizarRanking();
-      atualizarStatus();
-
+      document.querySelector("h1").style.display = "block";
+      document.getElementById("top-controls").style.display = "flex";
+      document.getElementById("tabuleiro").style.display = "flex";
       document.getElementById("ranking").style.display = "flex";
-      document.getElementById("painel").style.display = "flex";
+
+      atualizarTabuleiro();
+      atualizarRanking();
+      atualizarStatus(`Vez de ${nomesJogadores[jogadorAtual]}`);
     }
 
-    function atualizarRanking() {
-      const rankingDiv = document.getElementById("ranking-list");
-      rankingDiv.innerHTML = "";
-      // Ordena pelo dinheiro decrescente
-      const ranking = nomesJogadores
-        .map((nome, i) => ({
-          nome,
-          dinheiro: dinheiro[i],
-          avatar: avatares[i],
-          pos: i,
-        }))
-        .sort((a, b) => b.dinheiro - a.dinheiro);
-
-      ranking.forEach((jog, idx) => {
+    function atualizarTabuleiro() {
+      const tabuleiro = document.getElementById("tabuleiro");
+      tabuleiro.innerHTML = "";
+      casas.forEach((casa, index) => {
         const div = document.createElement("div");
-        div.classList.add("player-rank");
-        div.innerHTML = `<div class="pos">${idx + 1}</div><div class="avatar">${jog.avatar}</div><div class="info"><div class="name">${jog.nome}</div><div class="score">R$ ${jog.dinheiro}</div></div>`;
-        rankingDiv.appendChild(div);
+        div.className = `casa ${casa.categoria}`;
+        if(posicoes[jogadorAtual] === index) {
+          div.classList.add("ativo");
+        }
+        div.innerHTML = `
+          <span class="icon">${casa.icon}</span>
+          <span>${casa.nome}</span>
+          <div class="jogadores-casa">${mostrarJogadoresNaCasa(index)}</div>
+        `;
+        tabuleiro.appendChild(div);
       });
     }
 
-    function atualizarStatus() {
-      const status = document.getElementById("status");
-      status.textContent = `Jogador atual: ${nomesJogadores[jogadorAtual]} (R$ ${dinheiro[jogadorAtual]})`;
+    function mostrarJogadoresNaCasa(casaIndex) {
+      let jogadoresAqui = "";
+      posicoes.forEach((pos, idx) => {
+        if(pos === casaIndex) {
+          jogadoresAqui += avatares[idx];
+        }
+      });
+      return jogadoresAqui;
+    }
+
+    function atualizarRanking() {
+      const rankingList = document.getElementById("ranking-list");
+      rankingList.innerHTML = "";
+
+      // Criar array para ordenar jogadores por dinheiro
+      const jogadoresOrdenados = nomesJogadores.map((nome, idx) => ({
+        nome,
+        dinheiro: dinheiro[idx],
+        avatar: avatares[idx],
+        posicao: idx,
+      })).sort((a,b) => b.dinheiro - a.dinheiro);
+
+      jogadoresOrdenados.forEach((jogador, i) => {
+        const div = document.createElement("div");
+        div.className = "player-rank";
+        div.innerHTML = `
+          <div class="pos">${i + 1}</div>
+          <div class="avatar">${jogador.avatar}</div>
+          <div class="info">
+            <div class="name">${jogador.nome}</div>
+            <div class="score">R$ ${jogador.dinheiro}</div>
+          </div>
+        `;
+        rankingList.appendChild(div);
+      });
+    }
+
+    function atualizarStatus(msg) {
+      document.getElementById("status").textContent = msg;
     }
 
     function jogar() {
-      const dado = Math.floor(Math.random() * 6) + 1;
-      alert(`Você tirou ${dado}!`);
-      posicoes[jogadorAtual] = (posicoes[jogadorAtual] + dado) % casas.length;
-      const casaAtual = casas[posicoes[jogadorAtual]];
+      let dado = Math.floor(Math.random() * 6) + 1;
+      let mensagem = `${nomesJogadores[jogadorAtual]} rolou o dado e tirou ${dado}.`;
+
+      posicoes[jogadorAtual] += dado;
+      if(posicoes[jogadorAtual] >= casas.length) {
+        posicoes[jogadorAtual] -= casas.length;
+        dinheiro[jogadorAtual] += 200; // passar pela partida
+        mensagem += ` ${nomesJogadores[jogadorAtual]} passou pela partida e recebeu R$ 200!`;
+      }
+
+      // Atualizar dinheiro conforme casa
+      let casaAtual = casas[posicoes[jogadorAtual]];
       dinheiro[jogadorAtual] += casaAtual.valor;
-      alert(
-        `${nomesJogadores[jogadorAtual]} caiu na casa "${casaAtual.nome}" e ${
-          casaAtual.valor >= 0 ? "ganhou" : "perdeu"
-        } R$ ${Math.abs(casaAtual.valor)}.`
-      );
-      jogadorAtual = (jogadorAtual + 1) % nomesJogadores.length;
-      gerarTabuleiro();
+
+      mensagem += ` ${casaAtual.nome} causou impacto de R$ ${casaAtual.valor}.`;
+
+      if(dinheiro[jogadorAtual] < 0){
+        mensagem += ` ${nomesJogadores[jogadorAtual]} está com saldo negativo!`;
+      }
+
+      atualizarStatus(mensagem);
+      atualizarTabuleiro();
       atualizarRanking();
-      atualizarStatus();
+
+      // Próximo jogador
+      jogadorAtual = (jogadorAtual + 1) % nomesJogadores.length;
+      setTimeout(() => {
+        atualizarStatus(`Vez de ${nomesJogadores[jogadorAtual]}`);
+      }, 5000);
     }
   </script>
 </body>
