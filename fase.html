@@ -4,7 +4,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
 <title>Financeiro World — Protótipo</title>
-<!-- Phaser 3 -->
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
 <style>
   html,body { height:100%; margin:0; background:#111; font-family:Arial, sans-serif; -webkit-user-select:none; }
@@ -41,7 +40,6 @@
 <body>
 <div id="gameContainer"></div>
 
-<!-- HUD -->
 <div class="hud">
   <div class="left">
     <div id="scoreText">Saldo: R$ 2.000,00</div>
@@ -56,14 +54,12 @@
 </div>
 <div id="tipBox">Dica: Utilize as caixas "?" para tomar decisões (algumas trazem ganhos e outras custos).</div>
 
-<!-- Mobile controls -->
 <div class="mobile-controls" id="mobileControls">
   <div class="btn" id="btnLeft">◀</div>
   <div class="btn" id="btnRight">▶</div>
 </div>
 <div id="btnJump" class="btn">▲</div>
 
-<!-- Choice modal -->
 <div id="choiceModal">
   <div class="modalCard">
     <div class="modalTitle" id="modalTitle">Escolha</div>
@@ -75,7 +71,6 @@
   </div>
 </div>
 
-<!-- End modal / ranking -->
 <div id="endModal">
   <div class="modalCard">
     <div class="modalTitle">Fim do mês!</div>
@@ -397,13 +392,17 @@
       modalOptions.appendChild(btn);
     });
 
+    // ************* CORREÇÃO APLICADA AQUI *************
     // cancel option (if any)
     modalCancel.onclick = () => {
       // if cancel, just resume physics and re-enable event? We'll treat cancel as "skip" but event will remain disabled to avoid infinite loop.
       hideChoiceModal();
       scene.physics.resume();
       scene.player.clearTint();
+      // show a tip for the user
+      showTip('Você pulou essa decisão.');
     };
+    // **************************************************
 
     showChoiceModal();
   }
