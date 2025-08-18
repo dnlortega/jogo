@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>Financeiro World — Protótipo</title>
+<!-- Phaser 3 -->
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+<style>
+  html,body { height:100%; margin:0; background:#111; font-family:Arial, sans-serif; -webkit-user-select:none; }
+  #gameContainer { width:100%; height:100vh; display:block; position:relative; overflow:hidden; }
+  /* HUD */
+  .hud {
+    position:absolute; top:8px; left:8px; right:8px; display:flex; justify-content:space-between; align-items:center;
+    pointer-events:none; color:#fff; z-index:50;
+  }
+  .hud .left, .hud .right { background:rgba(0,0,0,0.4); padding:8px 12px; border-radius:8px; pointer-events:auto; }
+  #tipBox { position:absolute; top:60px; right:8px; z-index:50; background:rgba(0,0,0,0.5); color:#fff; padding:8px 12px; border-radius:8px; max-width:260px; font-size:13px; }
+  /* Mobile controls */
+  .mobile-controls { position:absolute; bottom:18px; left:18px; z-index:40; display:flex; gap:8px; }
+  .btn { width:64px; height:64px; border-radius:10px; background:rgba(255,255,255,0.08); display:flex; justify-content:center; align-items:center; color:#fff; font-weight:bold; font-size:20px; user-select:none; touch-action: none; }
+  #btnJump { position:absolute; right:18px; bottom:18px; z-index:40; width:72px; height:72px; border-radius:50%; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; }
+  /* Modal */
+  #choiceModal, #endModal { position:fixed; left:0; top:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; z-index:100; background:rgba(0,0,0,0.6); visibility:hidden; opacity:0; transition:all .18s ease; }
+  #choiceModal .modalCard, #endModal .modalCard { width:92%; max-width:520px; background:#fff; color:#111; border-radius:8px; padding:18px; box-shadow:0 8px 30px rgba(0,0,0,0.5); }
+  .modalTitle { font-weight:bold; margin-bottom:8px; }
+  .modalRow { margin:8px 0; }
+  .choiceBtns { display:flex; gap:10px; justify-content:center; margin-top:12px; flex-wrap:wrap; }
+  .choiceBtns button { padding:10px 14px; border-radius:6px; border:0; cursor:pointer; font-weight:bold; }
+  .show { visibility:visible; opacity:1; }
+  /* Ranking list */
+  #rankingList { max-height:200px; overflow:auto; margin-top:10px; border-top:1px solid #eee; padding-top:8px; font-size:14px; }
+  /* small screens tweak */
+  @media(max-width:420px){
+    .btn { width:56px; height:56px; font-size:18px; }
+    #btnJump { width:64px; height:64px; }
+    #tipBox { display:none; } /* hide tip on very small screens to save space */
+  }
+</style>
+</head>
+<body>
+<div id="gameContainer"></div>
+
+<!-- HUD -->
+<div class="hud">
+  <div class="left">
+    <div id="scoreText">Saldo: R$ 2.000,00</div>
+    <div id="phaseText" style="font-size:12px; opacity:0.9">Fase 1 / 3</div>
+  </div>
+  <div class="right">
+    <div style="text-align:right">
+      <div style="font-weight:bold">Dicas rápidas</div>
+      <div style="font-size:12px; opacity:0.9">Colete ganhos, evite gastos e pense nas escolhas.</div>
+    </div>
+  </div>
+</div>
+<div id="tipBox">Dica: Utilize as caixas "?" para tomar decisões (algumas trazem ganhos e outras custos).</div>
+
+<!-- Mobile controls -->
+<div class="mobile-controls" id="mobileControls">
+  <div class="btn" id="btnLeft">◀</div>
+  <div class="btn" id="btnRight">▶</div>
+</div>
+<div id="btnJump" class="btn">▲</div>
+
+<!-- Choice modal -->
+<div id="choiceModal">
+  <div class="modalCard">
+    <div class="modalTitle" id="modalTitle">Escolha</div>
+    <div id="modalDesc" class="modalRow">Descrição aqui.</div>
+    <div class="choiceBtns" id="modalOptions"></div>
+    <div style="text-align:center; margin-top:12px">
+      <button id="modalCancel" style="padding:8px 12px; border-radius:6px; border:1px solid #ccc; background:#fff; cursor:pointer">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- End modal / ranking -->
+<div id="endModal">
+  <div class="modalCard">
+    <div class="modalTitle">Fim do mês!</div>
+    <div id="endSummary">Seu saldo final: R$ 0,00</div>
+
+    <div style="margin-top:10px">
+      <label>Digite seu nome para salvar no ranking:</label><br/>
+      <input id="playerName" style="width:100%; padding:8px; margin-top:6px; box-sizing:border-box" placeholder="Seu nome" />
+      <div style="display:flex; gap:8px; margin-top:10px">
+        <button id="saveRanking" style="flex:1; padding:10px; background:#2b8aef; color:#fff; border:0; border-radius:6px; cursor:pointer">Salvar</button>
+        <button id="skipRanking" style="flex:1; padding:10px; background:#eee; border:0; border-radius:6px; cursor:pointer">Pular</button>
+      </div>
+    </div>
+
+    <div id="rankingList"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  // Configurações principais
+  const STARTING_BALANCE = 2000;
+  const LEVEL_COUNT = 3;
+  const LEVEL_WIDTH = 800; // cada "fase" tem 800px de largura virtual
+  const WORLD_WIDTH = LEVEL_WIDTH * LEVEL_COUNT;
+  let score = STARTING_BALANCE;
+  let currentPhase = 1;
+  const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  // mapear os 30 eventos (dias) em 3 fases (10 por fase)
+  // cada evento: type = 'auto' (recebe/paga sem escolha), 'choice' (abre modal)
+  // fields: x position (set dinamicamente), y position, value (for auto), desc, options (for choice)
+  const rawEvents = [
+    /* 1 */ { type:'auto', value:-670, desc:'Contas obrigatórias: Aluguel, Água, Energia' },
+    /* 2 */ { type:'choice', desc:'Você precisa de locomoção. Comprar:', options:[{label:'Carro - R$399', delta:-399},{label:'Moto - R$180', delta:-180}] },
+    /* 3 */ { type:'auto', value:+50, desc:'Você participou de promoção e ganhou R$50' },
+    /* 4 */ { type:'choice', desc:'Deseja Investimento (LCI) ou Financiamento?', options:[{label:'Investimento +R$500', delta:+500},{label:'Financiamento -R$250', delta:-250}] },
+    /* 5 */ { type:'choice', desc:'Compras: Mensal ou só o necessário?', options:[{label:'Mensal -R$500', delta:-500},{label:'Necessário -R$125', delta:-125}] },
+    /* 6 */ { type:'choice', desc:'Precisa de roupas: 5 peças ou 1 no shopping?', options:[{label:'5 Roupas -R$150', delta:-150},{label:'1 Shopping -R$100', delta:-100}] },
+    /* 7 */ { type:'auto', value:+50, desc:'Você achou dinheiro na jaqueta do inverno passado +R$50' },
+    /* 8 */ { type:'choice', desc:'Sair: churrasco com amigos ou jantar?', options:[{label:'Amigos -R$50', delta:-50},{label:'Jantar -R$100', delta:-100}] },
+    /* 9 */ { type:'auto', value:-150, desc:'Ficou doente: remédios -R$150' },
+    /* 10 */ { type:'choice', desc:'Hora extra? Você aceita ou leva sua filha?', options:[{label:'Aceitar (Gerente) +R$100', delta:+100},{label:'Levar filha -R$30', delta:-30}] },
+
+    /* 11 */ { type:'auto', value:+335, desc:'Vendeu metade das férias +R$335' },
+    /* 12 */ { type:'choice', desc:'Aniversário do amigo: lembrança ou presente?', options:[{label:'Lembrança -R$30', delta:-30},{label:'Presente -R$80', delta:-80}] },
+    /* 13 */ { type:'auto', value:-80, desc:'Gás acabou -R$80' },
+    /* 14 */ { type:'choice', desc:'Viagem: parque aquático ou hotel fazenda?', options:[{label:'Parque -R$130', delta:-130},{label:'Hotel -R$200', delta:-200}] },
+    /* 15 */ { type:'auto', value:+300, desc:'Avó adiantou presente de aniversário +R$300' },
+    /* 16 */ { type:'choice', desc:'É seu aniversário: churrasco ou jantar?', options:[{label:'Churrasco -R$30', delta:-30},{label:'Jantar -R$170', delta:-170}] },
+    /* 17 */ { type:'auto', value:-320, desc:'Veículo quebrou -R$320' },
+    /* 18 */ { type:'choice', desc:'Pet doente: medicar em casa ou vet?', options:[{label:'Casa -R$50', delta:-50},{label:'Veterinária -R$120', delta:-120}] },
+    /* 19 */ { type:'auto', value:-130, desc:'Combustível acabou -R$130' },
+    /* 20 */ { type:'auto', value:+800, desc:'Recebe seu vale (40% do salário) +R$800' },
+
+    /* 21 */ { type:'choice', desc:'Recarga semanal ou plano mensal?', options:[{label:'Recarga -R$60', delta:-60},{label:'Plano -R$40', delta:-40}] },
+    /* 22 */ { type:'auto', value:-400, desc:'Dente quebrou -R$400' },
+    /* 23 */ { type:'choice', desc:'Final de semana: pizza ou lanche?', options:[{label:'Pizza -R$60', delta:-60},{label:'Lanche -R$40', delta:-40}] },
+    /* 24 */ { type:'auto', value:+1000, desc:'Antecipe o 13º salário +R$1000' },
+    /* 25 */ { type:'choice', desc:'Curso (0) ou Netflix (-R$33)?', options:[{label:'Curso R$0', delta:0},{label:'Netflix -R$33', delta:-33}] },
+    /* 26 */ { type:'auto', value:-30, desc:'Cortar o cabelo -R$30' },
+    /* 27 */ { type:'choice', desc:'Óculos ou lente?', options:[{label:'Óculos -R$600', delta:-600},{label:'Lente -R$200', delta:-200}] },
+    /* 28 */ { type:'auto', value:+150, desc:'Ganhou na rifa +R$150' },
+    /* 29 */ { type:'auto', value:-110, desc:'Celular quebrou: conserto -R$110' },
+    /* 30 */ { type:'auto', value:-200, desc:'Doação para lar de idosos -R$200' }
+  ];
+
+  // EVENTS positions: distribuí por todo o WORLD_WIDTH (10 por fase)
+  const events = rawEvents.map((ev, idx) => {
+    const dayIndex = idx; // 0..29
+    const phaseIdx = Math.floor(dayIndex / 10); // 0..2
+    const withinPhaseIndex = dayIndex % 10; // 0..9
+    const baseX = phaseIdx * LEVEL_WIDTH;
+    // put event positions spaced across the phase
+    const x = Math.floor(baseX + 60 + (withinPhaseIndex + 1) * (LEVEL_WIDTH / 12));
+    const y = 420 - (Math.random() * 80); // slightly varied Y so world looks natural
+    return Object.assign({}, ev, { x, y, id: idx+1 });
+  });
+
+  // Phaser game
+  const config = {
+    type: Phaser.AUTO,
+    parent: 'gameContainer',
+    width: 800,
+    height: 520,
+    backgroundColor: '#67aaf9',
+    scale: {
+      mode: Phaser.Scale.FIT,
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+      width: 800,
+      height: 520
+    },
+    physics: {
+      default: 'arcade',
+      arcade: { gravity: { y: 900 }, debug: false }
+    },
+    scene: {
+      preload,
+      create,
+      update
+    }
+  };
+  const game = new Phaser.Game(config);
+
+  // UI elements references (DOM)
+  const scoreTextEl = document.getElementById('scoreText');
+  const phaseTextEl = document.getElementById('phaseText');
+  const tipBoxEl = document.getElementById('tipBox');
+  const choiceModal = document.getElementById('choiceModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalDesc = document.getElementById('modalDesc');
+  const modalOptions = document.getElementById('modalOptions');
+  const modalCancel = document.getElementById('modalCancel');
+  const endModal = document.getElementById('endModal');
+  const endSummary = document.getElementById('endSummary');
+  const playerNameInput = document.getElementById('playerName');
+  const saveRankingBtn = document.getElementById('saveRanking');
+  const skipRankingBtn = document.getElementById('skipRanking');
+  const rankingListEl = document.getElementById('rankingList');
+
+  // mobile buttons
+  const btnLeft = document.getElementById('btnLeft');
+  const btnRight = document.getElementById('btnRight');
+  const btnJump = document.getElementById('btnJump');
+
+  // control flags for mobile
+  let moveLeft = false, moveRight = false, jumpPressed = false;
+
+  // used to prevent double-trigger of same event
+  const triggeredEvents = new Set();
+
+  // helper to update HUD
+  function updateHUD() {
+    scoreTextEl.innerText = `Saldo: ${currency.format(score)}`;
+    phaseTextEl.innerText = `Fase ${currentPhase} / ${LEVEL_COUNT}`;
+  }
+
+  // helper to show tip briefly
+  function showTip(msg, ms = 2500) {
+    tipBoxEl.innerText = msg;
+    tipBoxEl.style.opacity = '1';
+    tipBoxEl.style.transform = 'translateY(0)';
+    setTimeout(() => {
+      // fade to default tip
+      tipBoxEl.innerText = 'Dica: utilize as caixas "?" para decisões.';
+    }, ms);
+  }
+
+  // ---- Phaser scene functions ----
+  function preload() {
+    // assets do labs.phaser.io (CDN)
+    this.load.image('sky', 'https://labs.phaser.io/assets/skies/gradientsky.png');
+    this.load.image('ground', 'https://labs.phaser.io/assets/sprites/platform.png');
+    this.load.image('coin', 'https://labs.phaser.io/assets/sprites/coin.png');
+    this.load.image('hazard', 'https://labs.phaser.io/assets/particles/red.png');
+    this.load.image('crate', 'https://labs.phaser.io/assets/sprites/crate.png');
+    this.load.spritesheet('dude', 'https://labs.phaser.io/assets/sprites/dude.png', { frameWidth: 32, frameHeight: 48 });
+  }
+
+  function create() {
+    // background
+    this.add.tileSprite(WORLD_WIDTH/2, 260, WORLD_WIDTH, 520, 'sky');
+
+    // physics bounds
+    this.physics.world.setBounds(0, 0, WORLD_WIDTH, 520);
+    this.cameras.main.setBounds(0, 0, WORLD_WIDTH, 520);
+
+    // platforms: create ground segments across world
+    const platforms = this.physics.add.staticGroup();
+    for (let x=0; x < WORLD_WIDTH; x += 400) {
+      const g = platforms.create(x + 200, 500, 'ground').setScale(2, 1).refreshBody();
+      g.setName('ground' + x);
+    }
+
+    // floating small platforms for variety
+    for (let p = 0; p < 12; p++) {
+      const px = 120 + p * 200 + (Math.random()*80);
+      const py = 350 - (Math.random()*140);
+      platforms.create(px, py, 'ground').setScale(0.6, 1).refreshBody();
+    }
+
+    // player
+    this.player = this.physics.add.sprite(50, 300, 'dude').setScale(1.05);
+    this.player.setBounce(0.1);
+    this.player.setCollideWorldBounds(true);
+    this.player.body.setSize(22, 40).setOffset(5, 8);
+
+    // animations
+    this.anims.create({ key:'left', frames:this.anims.generateFrameNumbers('dude', { start:0, end:3 }), frameRate:10, repeat:-1 });
+    this.anims.create({ key:'turn', frames:[{ key:'dude', frame:4 }], frameRate:20 });
+    this.anims.create({ key:'right', frames:this.anims.generateFrameNumbers('dude', { start:5, end:8 }), frameRate:10, repeat:-1 });
+
+    // camera follow
+    this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+
+    // collisions
+    this.physics.add.collider(this.player, platforms);
+
+    // groups for event sprites
+    const receives = this.physics.add.group();
+    const hazards = this.physics.add.group();
+    const boxes = this.physics.add.group();
+
+    // create sprites from events array
+    events.forEach(ev => {
+      if (ev.type === 'auto') {
+        // positive => coin sprite, negative => hazard sprite
+        if (ev.value >= 0) {
+          const s = receives.create(ev.x, ev.y, 'coin').setScale(0.6).setDataEnabled();
+          s.data.set('id', ev.id);
+          s.data.set('type', 'auto');
+          s.data.set('value', ev.value);
+          s.data.set('desc', ev.desc);
+          s.setInteractive();
+          s.body.setAllowGravity(false);
+        } else {
+          const s = hazards.create(ev.x, ev.y, 'hazard').setScale(0.8).setDataEnabled();
+          s.data.set('id', ev.id);
+          s.data.set('type', 'auto');
+          s.data.set('value', ev.value);
+          s.data.set('desc', ev.desc);
+          s.setInteractive();
+          s.body.setAllowGravity(false);
+        }
+      } else if (ev.type === 'choice') {
+        const s = boxes.create(ev.x, ev.y, 'crate').setScale(0.7).setDataEnabled();
+        s.data.set('id', ev.id);
+        s.data.set('type', 'choice');
+        s.data.set('desc', ev.desc);
+        s.data.set('options', ev.options);
+        s.setInteractive();
+        s.body.setAllowGravity(false);
+      }
+    });
+
+    // overlaps
+    this.physics.add.overlap(this.player, receives, (p, sprite) => {
+      handleAuto(sprite);
+    }, null, this);
+    this.physics.add.overlap(this.player, hazards, (p, sprite) => {
+      handleAuto(sprite);
+    }, null, this);
+    this.physics.add.overlap(this.player, boxes, (p, sprite) => {
+      handleChoice(sprite);
+    }, null, this);
+
+    // input
+    this.cursors = this.input.keyboard.createCursorKeys();
+
+    // show initial HUD
+    updateHUD();
+    showTip('Bem-vindo! Colete ganhos (moedas) e abra caixas "?" para decidir. Termine o percurso para finalizar o mês.');
+
+    // small pause then show phase start tip
+    setTimeout(() => showTip('Fase 1: primeiros 10 eventos do mês.'), 1000);
+
+    // expose variables to scene for update
+    this._groups = { receives, hazards, boxes, platforms };
+  }
+
+  // handle automatic events (receives and hazards)
+  function handleAuto(sprite) {
+    const id = sprite.data.get('id');
+    if (triggeredEvents.has(id)) return;
+    triggeredEvents.add(id);
+    const value = sprite.data.get('value') || 0;
+    const desc = sprite.data.get('desc') || '';
+    score += value;
+    updateHUD();
+    // show a quick tip overlay for the event
+    showTip(`${desc} ${value >= 0 ? '+' + currency.format(value) : currency.format(value)}`);
+    // remove sprite so it can't be retriggered
+    sprite.disableBody(true, true);
+    // small particle-like feedback (tint or scale)
+    const s = sprite.scene.tweens.add({
+      targets: sprite,
+      scale: 0,
+      duration: 220,
+      onComplete: () => { if (sprite && sprite.destroy) sprite.destroy(); }
+    });
+    // if reached end of world, end game
+    checkEnd(sprite.scene);
+  }
+
+  // open modal for choice
+  function handleChoice(sprite) {
+    const id = sprite.data.get('id');
+    if (triggeredEvents.has(id)) return;
+    triggeredEvents.add(id);
+
+    // pause physics and show modal
+    const scene = sprite.scene;
+    scene.physics.pause();
+    scene.player.setTint(0x999999);
+
+    modalTitle.innerText = `Decisão (dia ${sprite.data.get('id')})`;
+    modalDesc.innerText = sprite.data.get('desc') || '';
+    modalOptions.innerHTML = '';
+
+    const opts = sprite.data.get('options') || [];
+    opts.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.innerText = opt.label;
+      btn.style.background = (opt.delta >= 0) ? '#2eb82e' : '#e65c4f';
+      btn.style.color = '#fff';
+      btn.onclick = () => {
+        score += opt.delta;
+        updateHUD();
+        // hide modal and resume
+        hideChoiceModal();
+        // remove the sprite from scene
+        sprite.disableBody(true, true);
+        sprite.destroy();
+        showTip(`${opt.label} → ${currency.format(opt.delta)}`);
+        scene.physics.resume();
+        scene.player.clearTint();
+        checkEnd(scene);
+      };
+      modalOptions.appendChild(btn);
+    });
+
+    // cancel option (if any)
+    modalCancel.onclick = () => {
+      // if cancel, just resume physics and re-enable event? We'll treat cancel as "skip" but event will remain disabled to avoid infinite loop.
+      hideChoiceModal();
+      scene.physics.resume();
+      scene.player.clearTint();
+    };
+
+    showChoiceModal();
+  }
+
+  function showChoiceModal() {
+    choiceModal.classList.add('show');
+    setTimeout(()=> choiceModal.style.visibility='visible', 10);
+  }
+  function hideChoiceModal() {
+    choiceModal.classList.remove('show');
+    setTimeout(()=> choiceModal.style.visibility='hidden', 200);
+  }
+
+  // check whether player reached the end
+  function checkEnd(scene) {
+    // if player x near end of world, show end modal
+    if (scene.player.x >= WORLD_WIDTH - 100) {
+      endGame();
+    }
+  }
+
+  // end of whole game (after all phases)
+  function endGame() {
+    // freeze game
+    try { game.scene.scenes.forEach(s => s.physics && s.physics.pause()); } catch(e){ }
+    // show modal
+    endModal.classList.add('show');
+    endModal.style.visibility = 'visible';
+    endSummary.innerText = `Seu saldo final: ${currency.format(score)}`;
+    // show ranking
+    renderRanking();
+  }
+
+  function renderRanking() {
+    const raw = localStorage.getItem('finance_ranking');
+    const arr = raw ? JSON.parse(raw) : [];
+    // sort desc by score
+    const sorted = arr.sort((a,b) => b.score - a.score).slice(0,10);
+    if (sorted.length === 0) {
+      rankingListEl.innerHTML = '<div style="opacity:0.7">Nenhum registro ainda.</div>';
+      return;
+    }
+    rankingListEl.innerHTML = sorted.map(r => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee"><div>${escapeHtml(r.name)}</div><div>${currency.format(r.score)}</div></div>`).join('');
+  }
+
+  function escapeHtml(text) {
+    return text.replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+  }
+
+  // save ranking
+  saveRankingBtn.onclick = () => {
+    const name = (playerNameInput.value || 'Jogador').trim();
+    const raw = localStorage.getItem('finance_ranking');
+    const arr = raw ? JSON.parse(raw) : [];
+    arr.push({ name, score, date: new Date().toISOString() });
+    localStorage.setItem('finance_ranking', JSON.stringify(arr));
+    renderRanking();
+    saveRankingBtn.disabled = true;
+    saveRankingBtn.innerText = 'Salvo ✓';
+  };
+  skipRankingBtn.onclick = () => {
+    endModal.classList.remove('show');
+    endModal.style.visibility = 'hidden';
+    // unpause everything so user can continue to roam if needed
+    try { game.scene.scenes.forEach(s => s.physics && s.physics.resume()); } catch(e){}
+  };
+
+  // ---- Update loop ----
+  function update(time, delta) {
+    const scene = this;
+    // set current phase based on player.x
+    const newPhase = Math.min(LEVEL_COUNT, Math.floor(this.player.x / LEVEL_WIDTH) + 1);
+    if (newPhase !== currentPhase) {
+      currentPhase = newPhase;
+      updateHUD();
+      showTip(`Fase ${currentPhase} iniciada — bons planejamentos!`);
+    }
+
+    // input handling (keyboard)
+    const leftKey = this.cursors.left.isDown;
+    const rightKey = this.cursors.right.isDown;
+    const upKey = Phaser.Input.Keyboard.JustDown(this.cursors.up);
+
+    const movingLeft = leftKey || moveLeft;
+    const movingRight = rightKey || moveRight;
+    const wantJump = upKey || jumpPressed;
+
+    const speed = 200;
+    if (movingLeft) {
+      this.player.setVelocityX(-speed);
+      this.player.anims.play('left', true);
+    } else if (movingRight) {
+      this.player.setVelocityX(speed);
+      this.player.anims.play('right', true);
+    } else {
+      this.player.setVelocityX(0);
+      this.player.anims.play('turn');
+    }
+
+    if (wantJump && this.player.body.touching.down) {
+      this.player.setVelocityY(-430);
+    }
+
+    // if jump pressed from mobile, reset jumpPressed to avoid continuous jumps
+    if (jumpPressed) jumpPressed = false;
+  }
+
+  // --- Mobile button events (touch and mouse) ---
+  function addHoldListener(element, onDown, onUp) {
+    element.addEventListener('pointerdown', e => { e.preventDefault(); onDown(); });
+    element.addEventListener('pointerup', e => { e.preventDefault(); onUp(); });
+    element.addEventListener('pointerout', e => { e.preventDefault(); onUp(); });
+    element.addEventListener('pointercancel', e => { e.preventDefault(); onUp(); });
+  }
+  addHoldListener(btnLeft, () => moveLeft = true, () => moveLeft = false);
+  addHoldListener(btnRight, () => moveRight = true, () => moveRight = false);
+  addHoldListener(btnJump, () => jumpPressed = true, () => {}); // jump is one-shot
+
+  // prevent double-tap zoom on mobile on these controls
+  [btnLeft, btnRight, btnJump].forEach(el => {
+    el.addEventListener('touchstart', e => { e.preventDefault(); }, { passive:false });
+  });
+
+  // keyboard accessibility for mobile controls
+  document.addEventListener('keydown', e => {
+    if (e.key === 'a' || e.key === 'ArrowLeft') moveLeft = true;
+    if (e.key === 'd' || e.key === 'ArrowRight') moveRight = true;
+    if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w') jumpPressed = true;
+  });
+  document.addEventListener('keyup', e => {
+    if (e.key === 'a' || e.key === 'ArrowLeft') moveLeft = false;
+    if (e.key === 'd' || e.key === 'ArrowRight') moveRight = false;
+    if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w') jumpPressed = false;
+  });
+
+  // small helper: if user clicks the canvas with mouse on a crate, open it (nice for desktop)
+  document.getElementById('gameContainer').addEventListener('click', (ev) => {
+    // nothing extra needed — physics overlap already handles it when player touches the sprite
+  });
+
+  // initial HUD render
+  updateHUD();
+
+  // If the user needs to reset the ranking for tests, they can run in console:
+  // localStorage.removeItem('finance_ranking');
+})();
+</script>
+</body>
+</html>
