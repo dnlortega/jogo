@@ -1,1 +1,525 @@
-<!DOCTYPE html> <html lang="pt-BR"> <head> <meta charset="UTF-8" /> <meta name="viewport" content="width=device-width, initial-scale=1" /> <title>Monopoly Contábil Mobile</title> <style> @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap'); * { box-sizing: border-box; } body { margin: 0; font-family: 'Inter', sans-serif; background: #f0f4ff; color: #1e293b; display: flex; flex-direction: column; min-height: 100vh; user-select: none; } header { background: #2563eb; color: white; padding: 1rem 1.5rem; font-weight: 900; font-size: 1.7rem; text-align: center; text-shadow: 0 1px 2px #1e40af; position: sticky; top: 0; z-index: 100; } #top-controls { display: flex; justify-content: center; background: #3b82f6; padding: 0.7rem 0; position: sticky; top: 3.8rem; z-index: 100; } #top-controls button { background: #1e40af; border: none; border-radius: 12px; color: white; font-size: 1.3rem; padding: 0.8rem 2.2rem; font-weight: 700; cursor: pointer; box-shadow: 0 5px 20px #1e40afcc; transition: background 0.3s ease, box-shadow 0.3s ease; user-select: none; } #top-controls button:hover { background: #2563eb; box-shadow: 0 8px 25px #2563ebcc; } #top-controls button:active { background: #1c3a8a; box-shadow: none; } main { flex-grow: 1; display: flex; flex-direction: column; padding: 0.8rem 1rem; gap: 1rem; } #status { background: #dbeafe; border-radius: 12px; padding: 0.8rem 1rem; font-weight: 700; color: #1e40af; min-height: 3.2rem; display: flex; align-items: center; user-select: text; } #tabuleiro { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; max-height: 50vh; padding-right: 4px; } .casa { display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-radius: 14px; font-weight: 700; box-shadow: 0 2px 8px rgb(0 0 0 / 0.12); color: #1e293b; background: white; cursor: default; position: relative; user-select: none; transition: box-shadow 0.25s ease; } .casa:hover { box-shadow: 0 8px 24px rgb(0 0 0 / 0.2); } .casa.ativo { box-shadow: 0 0 12px 3px #2563ebaa; animation: pulseGlow 1.5s ease infinite alternate; } @keyframes pulseGlow { from { box-shadow: 0 0 8px 2px #3b82f6cc; } to { box-shadow: 0 0 18px 6px #2563ebcc; } } .casa .icon { font-size: 2rem; min-width: 40px; text-align: center; text-shadow: 1px 1px 3px #93c5fd; } .casa .nome-valor { flex-grow: 1; display: flex; flex-direction: column; } .casa .nome { font-size: 1.1rem; } .casa .valor { font-size: 0.9rem; color: #2563eb; font-weight: 600; } .casa.imposto { border-left: 6px solid #ef4444; background: #fee2e2; color: #991b1b; } .casa.auditoria { border-left: 6px solid #3b82f6; background: #dbeafe; color: #1e40af; } .casa.custos { border-left: 6px solid #22c55e; background: #dcfce7; color: #14532d; } .casa.relatorio { border-left: 6px solid #eab308; background: #fef3c7; color: #854d0e; } .casa.outros { border-left: 6px solid #6b7280; background: #f3f4f6; color: #374151; } .jogadores-casa { font-size: 1.6rem; user-select: none; display: flex; gap: 6px; min-width: 60px; justify-content: center; } #ranking { background: #fff; border-radius: 14px; box-shadow: 0 10px 30px rgb(0 0 0 / 0.12); padding: 1rem 1.3rem; margin-top: 1rem; } #ranking h2 { font-weight: 900; color: #1e40af; font-size: 1.5rem; margin-bottom: 1rem; text-shadow: 0 1px 2px #bfdbfe; } .player-rank { display: flex; align-items: center; gap: 1rem; font-weight: 700; color: #1e40af; background: #eff6ff; padding: 0.8rem 1rem; border-radius: 12px; user-select: none; } .player-rank .avatar { font-size: 2.5rem; width: 40px; text-align: center; text-shadow: 1px 1px 3px #93c5fd; } .player-rank .info { flex-grow: 1; display: flex; flex-direction: column; gap: 0.15rem; } .player-rank .name { font-weight: 800; font-size: 1.1rem; } .player-rank .score { font-weight: 600; color: #2563eb; } #config { padding: 1rem; background: white; border-radius: 14px; margin: 1rem; box-shadow: 0 10px 25px rgb(0 0 0 / 0.08); max-width: 400px; margin-left: auto; margin-right: auto; } #config h2 { font-weight: 900; font-size: 1.5rem; color: #2563eb; margin-bottom: 0.7rem; text-align: center; text-shadow: 0 1px 3px #93c5fd; } #config input { width: 100%; font-size: 1.15rem; padding: 0.7rem 1rem; margin-bottom: 0.9rem; border-radius: 12px; border: 2px solid #a5b4fc; outline-offset: 2px; outline-color: transparent; font-weight: 700; font-family: 'Inter', sans-serif; transition: border-color 0.3s ease; } #config input::placeholder { color: #a5b4fc; font-weight: 500; } #config input:focus { border-color: #2563eb; outline-color: #2563eb; } #config button { width: 100%; background: #2563eb; color: white; border: none; border-radius: 12px; padding: 0.9rem; font-size: 1.3rem; font-weight: 900; cursor: pointer; box-shadow: 0 10px 25px #2563ebcc; transition: background 0.3s ease, box-shadow 0.3s ease; } #config button:hover { background: #1e40af; box-shadow: 0 14px 35px #1e40afcc; } #config button:active { background: #1e3a8a; box-shadow: none; } #error { color: #dc2626; font-weight: 700; margin-bottom: 0.8rem; text-align: center; } /* Scrollbar fino e claro para tabuleiro e ranking */ #tabuleiro::-webkit-scrollbar, #ranking::-webkit-scrollbar { width: 6px; } #tabuleiro::-webkit-scrollbar-thumb, #ranking::-webkit-scrollbar-thumb { background: #2563eb88; border-radius: 12px; } #tabuleiro::-webkit-scrollbar-track, #ranking::-webkit-scrollbar-track { background: #e0e7ff66; border-radius: 12px; } /* Responsividade */ @media (max-width: 520px) { #tabuleiro { max-height: 60vh; gap: 8px; padding-right: 2px; } .casa { font-size: 1rem; padding: 12px 16px; gap: 12px; } .casa .icon { font-size: 1.7rem; min-width: 36px; } #config { max-width: 100%; margin: 1rem 0.5rem; box-shadow: 0 8px 20px rgb(0 0 0 / 0.08); } #top-controls button { width: 90vw; font-size: 1.2rem; padding: 0.7rem 0; } #ranking { margin: 1rem 0 2rem; } } </style> </head> <body> <header>Monopoly Contábil</header> <div id="top-controls" style="display:none;"> <button id="btn-jogar" onclick="jogar()">🎲 Jogar Dado</button> </div> <main> <div id="status" aria-live="polite" aria-atomic="true"></div> <div id="tabuleiro"></div> <div id="ranking" style="display:none;"> <h2>Ranking dos Jogadores</h2> <div id="ranking-list"></div> </div> </main> <div id="config"> <h2>Configurar Jogadores</h2> <input type="text" id="player1" placeholder="Nome do jogador 1" /> <input type="text" id="player2" placeholder="Nome do jogador 2" /> <input type="text" id="player3" placeholder="Nome do jogador 3 (opcional)" /> <input type="text" id="player4" placeholder="Nome do jogador 4 (opcional)" /> <button onclick="startGame()">Começar Jogo</button> <p id="error"></p> </div> <script> let nomesJogadores = []; let avatares = ["😀", "😎", "🤓", "🤑"]; let posicoes = []; let dinheiro = []; let jogadorAtual = 0; const casas = [ {nome: "Imposto de Renda", valor: -200, categoria:"imposto", icon:"💸", mensagem:"Impostos atrasados, pague multa de R$ 300,00"}, {nome: "Auditoria Fiscal", valor: -150, categoria:"auditoria", icon:"🕵️‍♂️", mensagem:"Impostos com atraso, multa de R$ 300,00"}, {nome: "Contabilidade de Custos", valor: 100, categoria:"custos", icon:"📊", mensagem:"Recebeu um bônus por eficiência! +R$ 100"}, {nome: "Balancete", valor: 50, categoria:"relatorio", icon:"📈", mensagem:"Relatório aprovado, +R$ 50"}, {nome: "Escrituração Fiscal", valor: -100, categoria:"imposto", icon:"🧾", mensagem:"Erro na escrituração, pague R$ 100"}, {nome: "Conciliação Bancária", valor: 200, categoria:"custos", icon:"🏦", mensagem:"Bônus de conciliação +R$ 200"}, {nome: "Planejamento Tributário", valor: 150, categoria:"imposto", icon:"🗂️", mensagem:"Planejamento tributário bem feito, +R$ 150"}, {nome: "Análise de Balanços", valor: -50, categoria:"relatorio", icon:"🔍", mensagem:"Análise incorreta, pague R$ 50"}, {nome: "Folha de Pagamento", valor: -100, categoria:"custos", icon:"💰", mensagem:"Erro na folha, pague R$ 100"}, {nome: "Controle Patrimonial", valor: 200, categoria:"custos", icon:"🏢", mensagem:"Controle eficiente, +R$ 200"}, {nome: "Inventário", valor: -50, categoria:"auditoria", icon:"📦", mensagem:"Inventário errado, pague R$ 50"}, {nome: "Auditoria Interna", valor: -150, categoria:"auditoria", icon:"🧐", mensagem:"Auditoria interna falhou, pague R$ 150"}, {nome: "Relatório Gerencial", valor: 100, categoria:"relatorio", icon:"📑", mensagem:"Relatório gerencial positivo, +R$ 100"}, {nome: "ICMS", valor: -200, categoria:"imposto", icon:"🏷️", mensagem:"ICMS atrasado, pague R$ 200"}, {nome: "ISS", valor: -100, categoria:"imposto", icon:"🛎️", mensagem:"ISS pendente, pague R$ 100"}, {nome: "PIS/COFINS", valor: -150, categoria:"imposto", icon:"📃", mensagem:"PIS/COFINS atrasado, pague R$ 150"}, {nome: "Nota Fiscal Eletrônica", valor: 50, categoria:"custos", icon:"💻", mensagem:"Certificado vencido, pague R$ 200"}, {nome: "Análise de Demonstrativos", valor: 100, categoria:"relatorio", icon:"📋", mensagem:"Análise correta, +R$ 100"}, {nome: "DRE", valor: 200, categoria:"relatorio", icon:"📊", mensagem:"DRE aprovado, +R$ 200"}, {nome: "Balanço Patrimonial", valor: 300, categoria:"relatorio", icon:"🏛️", mensagem:"Balanço patrimonial forte, +R$ 300"}, ]; function startGame() { const p1 = document.getElementById("player1").value.trim(); const p2 = document.getElementById("player2").value.trim(); const p3 = document.getElementById("player3").value.trim(); const p4 = document.getElementById("player4").value.trim(); const error = document.getElementById("error"); nomesJogadores = []; if(p1) nomesJogadores.push(p1); if(p2) nomesJogadores.push(p2); if(p3) nomesJogadores.push(p3); if(p4) nomesJogadores.push(p4); if (nomesJogadores.length < 2) { error.textContent = "Por favor, insira pelo menos 2 nomes de jogadores."; return; } if (nomesJogadores.length > 4) { error.textContent = "No máximo 4 jogadores são permitidos."; return; } error.textContent = ""; posicoes = new Array(nomesJogadores.length).fill(0); dinheiro = new Array(nomesJogadores.length).fill(1000); jogadorAtual = 0; document.getElementById("config").style.display = "none"; document.getElementById("top-controls").style.display = "flex"; document.getElementById("tabuleiro").style.display = "flex"; document.getElementById("ranking").style.display = "block"; atualizarTabuleiro(); atualizarRanking(); atualizarStatus(É a vez de ${nomesJogadores[jogadorAtual]}); } function atualizarTabuleiro() { const tabuleiro = document.getElementById("tabuleiro"); tabuleiro.innerHTML = ""; casas.forEach((casa, index) => { const div = document.createElement("div"); div.className = "casa " + casa.categoria; if(posicoes[jogadorAtual] === index) div.classList.add("ativo"); div.innerHTML = <span class="icon" aria-label="${casa.nome}">${casa.icon}</span> <div class="nome-valor"> <span class="nome">${casa.nome}</span> <span class="valor">${casa.valor > 0 ? '+' : '-'}R$${Math.abs(casa.valor)}</span> </div> <div class="jogadores-casa" aria-label="Jogadores nesta casa">${mostrarJogadoresNaCasa(index)}</div> ; tabuleiro.appendChild(div); }); } function mostrarJogadoresNaCasa(casaIndex) { let jogadoresAqui = ""; posicoes.forEach((pos, idx) => { if(pos === casaIndex) jogadoresAqui += avatares[idx]; }); return jogadoresAqui; } function atualizarRanking() { const rankingList = document.getElementById("ranking-list"); rankingList.innerHTML = ""; const jogadoresOrdenados = nomesJogadores.map((nome, idx) => ({ nome, dinheiro: dinheiro[idx], avatar: avatares[idx], posicao: idx, })).sort((a,b) => b.dinheiro - a.dinheiro); jogadoresOrdenados.forEach((jogador, i) => { const div = document.createElement("div"); div.className = "player-rank"; div.innerHTML = <div class="pos">${i + 1}º</div> <div class="avatar">${jogador.avatar}</div> <div class="info"> <div class="name">${jogador.nome}</div> <div class="score">R$ ${jogador.dinheiro}</div> </div> ; rankingList.appendChild(div); }); } function atualizarStatus(msg) { const status = document.getElementById("status"); status.textContent = msg; } function jogar() { let dado = Math.floor(Math.random() * 6) + 1; let mensagem = ${nomesJogadores[jogadorAtual]} rolou o dado e tirou ${dado}.; posicoes[jogadorAtual] += dado; if(posicoes[jogadorAtual] >= casas.length) { posicoes[jogadorAtual] -= casas.length; dinheiro[jogadorAtual] += 200; // passou pela partida mensagem += ${nomesJogadores[jogadorAtual]} passou pela partida e recebeu R$ 200!; } let casaAtual = casas[posicoes[jogadorAtual]]; dinheiro[jogadorAtual] += casaAtual.valor; mensagem += ${casaAtual.mensagem}; if(dinheiro[jogadorAtual] < 0){ mensagem += ${nomesJogadores[jogadorAtual]} está com saldo negativo!; } atualizarStatus(mensagem); atualizarTabuleiro(); atualizarRanking(); jogadorAtual = (jogadorAtual + 1) % nomesJogadores.length; setTimeout(() => { atualizarStatus(É a vez de ${nomesJogadores[jogadorAtual]}); }, 5000); } </script> </body> </html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Monopoly Contábil Mobile</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: #f0f4ff;
+    color: #1e293b;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    user-select: none;
+  }
+  header {
+    background: #2563eb;
+    color: white;
+    padding: 1rem 1.5rem;
+    font-weight: 900;
+    font-size: 1.7rem;
+    text-align: center;
+    text-shadow: 0 1px 2px #1e40af;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  #top-controls {
+    display: flex;
+    justify-content: center;
+    background: #3b82f6;
+    padding: 0.7rem 0;
+    position: sticky;
+    top: 3.8rem;
+    z-index: 100;
+  }
+  #top-controls button {
+    background: #1e40af;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 1.3rem;
+    padding: 0.8rem 2.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 5px 20px #1e40afcc;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+    user-select: none;
+  }
+  #top-controls button:hover {
+    background: #2563eb;
+    box-shadow: 0 8px 25px #2563ebcc;
+  }
+  #top-controls button:active {
+    background: #1c3a8a;
+    box-shadow: none;
+  }
+  main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0.8rem 1rem;
+    gap: 1rem;
+  }
+  #status {
+    background: #dbeafe;
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    font-weight: 700;
+    color: #1e40af;
+    min-height: 3.2rem;
+    display: flex;
+    align-items: center;
+    user-select: text;
+  }
+
+  #tabuleiro {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    max-height: 50vh;
+    padding-right: 4px;
+  }
+
+  .casa {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border-radius: 14px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.12);
+    color: #1e293b;
+    background: white;
+    cursor: default;
+    position: relative;
+    user-select: none;
+    transition: box-shadow 0.25s ease;
+  }
+  .casa:hover {
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
+  }
+  .casa.ativo {
+    box-shadow: 0 0 12px 3px #2563ebaa;
+    animation: pulseGlow 1.5s ease infinite alternate;
+  }
+  @keyframes pulseGlow {
+    from {
+      box-shadow: 0 0 8px 2px #3b82f6cc;
+    }
+    to {
+      box-shadow: 0 0 18px 6px #2563ebcc;
+    }
+  }
+
+  .casa .icon {
+    font-size: 2rem;
+    min-width: 40px;
+    text-align: center;
+    text-shadow: 1px 1px 3px #93c5fd;
+  }
+  .casa .nome-valor {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .casa .nome {
+    font-size: 1.1rem;
+  }
+  .casa .valor {
+    font-size: 0.9rem;
+    color: #2563eb;
+    font-weight: 600;
+  }
+  .casa.imposto {
+    border-left: 6px solid #ef4444;
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  .casa.auditoria {
+    border-left: 6px solid #3b82f6;
+    background: #dbeafe;
+    color: #1e40af;
+  }
+  .casa.custos {
+    border-left: 6px solid #22c55e;
+    background: #dcfce7;
+    color: #14532d;
+  }
+  .casa.relatorio {
+    border-left: 6px solid #eab308;
+    background: #fef3c7;
+    color: #854d0e;
+  }
+  .casa.outros {
+    border-left: 6px solid #6b7280;
+    background: #f3f4f6;
+    color: #374151;
+  }
+  .jogadores-casa {
+    font-size: 1.6rem;
+    user-select: none;
+    display: flex;
+    gap: 6px;
+    min-width: 60px;
+    justify-content: center;
+  }
+
+  #ranking {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.12);
+    padding: 1rem 1.3rem;
+    margin-top: 1rem;
+  }
+  #ranking h2 {
+    font-weight: 900;
+    color: #1e40af;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    text-shadow: 0 1px 2px #bfdbfe;
+  }
+  .player-rank {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-weight: 700;
+    color: #1e40af;
+    background: #eff6ff;
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+    user-select: none;
+  }
+  .player-rank .avatar {
+    font-size: 2.5rem;
+    width: 40px;
+    text-align: center;
+    text-shadow: 1px 1px 3px #93c5fd;
+  }
+  .player-rank .info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .player-rank .name {
+    font-weight: 800;
+    font-size: 1.1rem;
+  }
+  .player-rank .score {
+    font-weight: 600;
+    color: #2563eb;
+  }
+
+  #config {
+    padding: 1rem;
+    background: white;
+    border-radius: 14px;
+    margin: 1rem;
+    box-shadow: 0 10px 25px rgb(0 0 0 / 0.08);
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  #config h2 {
+    font-weight: 900;
+    font-size: 1.5rem;
+    color: #2563eb;
+    margin-bottom: 0.7rem;
+    text-align: center;
+    text-shadow: 0 1px 3px #93c5fd;
+  }
+  #config input {
+    width: 100%;
+    font-size: 1.15rem;
+    padding: 0.7rem 1rem;
+    margin-bottom: 0.9rem;
+    border-radius: 12px;
+    border: 2px solid #a5b4fc;
+    outline-offset: 2px;
+    outline-color: transparent;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.3s ease;
+  }
+  #config input::placeholder {
+    color: #a5b4fc;
+    font-weight: 500;
+  }
+  #config input:focus {
+    border-color: #2563eb;
+    outline-color: #2563eb;
+  }
+  #config button {
+    width: 100%;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 0.9rem;
+    font-size: 1.3rem;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 10px 25px #2563ebcc;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+  }
+  #config button:hover {
+    background: #1e40af;
+    box-shadow: 0 14px 35px #1e40afcc;
+  }
+  #config button:active {
+    background: #1e3a8a;
+    box-shadow: none;
+  }
+  #error {
+    color: #dc2626;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+    text-align: center;
+  }
+
+  /* Scrollbar fino e claro para tabuleiro e ranking */
+  #tabuleiro::-webkit-scrollbar, #ranking::-webkit-scrollbar {
+    width: 6px;
+  }
+  #tabuleiro::-webkit-scrollbar-thumb, #ranking::-webkit-scrollbar-thumb {
+    background: #2563eb88;
+    border-radius: 12px;
+  }
+  #tabuleiro::-webkit-scrollbar-track, #ranking::-webkit-scrollbar-track {
+    background: #e0e7ff66;
+    border-radius: 12px;
+  }
+
+  /* Responsividade */
+  @media (max-width: 520px) {
+    #tabuleiro {
+      max-height: 60vh;
+      gap: 8px;
+      padding-right: 2px;
+    }
+    .casa {
+      font-size: 1rem;
+      padding: 12px 16px;
+      gap: 12px;
+    }
+    .casa .icon {
+      font-size: 1.7rem;
+      min-width: 36px;
+    }
+    #config {
+      max-width: 100%;
+      margin: 1rem 0.5rem;
+      box-shadow: 0 8px 20px rgb(0 0 0 / 0.08);
+    }
+    #top-controls button {
+      width: 90vw;
+      font-size: 1.2rem;
+      padding: 0.7rem 0;
+    }
+    #ranking {
+      margin: 1rem 0 2rem;
+    }
+  }
+</style>
+</head>
+<body>
+<header>Monopoly Contábil</header>
+
+<div id="top-controls" style="display:none;">
+  <button id="btn-jogar" onclick="jogar()">🎲 Jogar Dado</button>
+</div>
+
+<main>
+  <div id="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div id="tabuleiro"></div>
+
+  <div id="ranking" style="display:none;">
+    <h2>Ranking dos Jogadores</h2>
+    <div id="ranking-list"></div>
+  </div>
+</main>
+
+<div id="config">
+  <h2>Configurar Jogadores</h2>
+  <input type="text" id="player1" placeholder="Nome do jogador 1" />
+  <input type="text" id="player2" placeholder="Nome do jogador 2" />
+  <input type="text" id="player3" placeholder="Nome do jogador 3 (opcional)" />
+  <input type="text" id="player4" placeholder="Nome do jogador 4 (opcional)" />
+  <button onclick="startGame()">Começar Jogo</button>
+  <p id="error"></p>
+</div>
+
+<script>
+  let nomesJogadores = [];
+  let avatares = ["😀", "😎", "🤓", "🤑"];
+  let posicoes = [];
+  let dinheiro = [];
+  let jogadorAtual = 0;
+
+  const casas = [
+    {nome: "Imposto de Renda", valor: -200, categoria:"imposto", icon:"💸", mensagem:"Impostos atrasados, pague multa de R$ 300,00"},
+    {nome: "Auditoria Fiscal", valor: -150, categoria:"auditoria", icon:"🕵️‍♂️", mensagem:"Impostos com atraso, multa de R$ 300,00"},
+    {nome: "Contabilidade de Custos", valor: 100, categoria:"custos", icon:"📊", mensagem:"Recebeu um bônus por eficiência! +R$ 100"},
+    {nome: "Balancete", valor: 50, categoria:"relatorio", icon:"📈", mensagem:"Relatório aprovado, +R$ 50"},
+    {nome: "Escrituração Fiscal", valor: -100, categoria:"imposto", icon:"🧾", mensagem:"Erro na escrituração, pague R$ 100"},
+    {nome: "Conciliação Bancária", valor: 200, categoria:"custos", icon:"🏦", mensagem:"Bônus de conciliação +R$ 200"},
+    {nome: "Planejamento Tributário", valor: 150, categoria:"imposto", icon:"🗂️", mensagem:"Planejamento tributário bem feito, +R$ 150"},
+    {nome: "Análise de Balanços", valor: -50, categoria:"relatorio", icon:"🔍", mensagem:"Análise incorreta, pague R$ 50"},
+    {nome: "Folha de Pagamento", valor: -100, categoria:"custos", icon:"💰", mensagem:"Erro na folha, pague R$ 100"},
+    {nome: "Controle Patrimonial", valor: 200, categoria:"custos", icon:"🏢", mensagem:"Controle eficiente, +R$ 200"},
+    {nome: "Inventário", valor: -50, categoria:"auditoria", icon:"📦", mensagem:"Inventário errado, pague R$ 50"},
+    {nome: "Auditoria Interna", valor: -150, categoria:"auditoria", icon:"🧐", mensagem:"Auditoria interna falhou, pague R$ 150"},
+    {nome: "Relatório Gerencial", valor: 100, categoria:"relatorio", icon:"📑", mensagem:"Relatório gerencial positivo, +R$ 100"},
+    {nome: "ICMS", valor: -200, categoria:"imposto", icon:"🏷️", mensagem:"ICMS atrasado, pague R$ 200"},
+    {nome: "ISS", valor: -100, categoria:"imposto", icon:"🛎️", mensagem:"ISS pendente, pague R$ 100"},
+    {nome: "PIS/COFINS", valor: -150, categoria:"imposto", icon:"📃", mensagem:"PIS/COFINS atrasado, pague R$ 150"},
+    {nome: "Nota Fiscal Eletrônica", valor: 50, categoria:"custos", icon:"💻", mensagem:"Certificado vencido, pague R$ 200"},
+    {nome: "Análise de Demonstrativos", valor: 100, categoria:"relatorio", icon:"📋", mensagem:"Análise correta, +R$ 100"},
+    {nome: "DRE", valor: 200, categoria:"relatorio", icon:"📊", mensagem:"DRE aprovado, +R$ 200"},
+    {nome: "Balanço Patrimonial", valor: 300, categoria:"relatorio", icon:"🏛️", mensagem:"Balanço patrimonial forte, +R$ 300"},
+  ];
+
+  function startGame() {
+    const p1 = document.getElementById("player1").value.trim();
+    const p2 = document.getElementById("player2").value.trim();
+    const p3 = document.getElementById("player3").value.trim();
+    const p4 = document.getElementById("player4").value.trim();
+    const error = document.getElementById("error");
+
+    nomesJogadores = [];
+    if(p1) nomesJogadores.push(p1);
+    if(p2) nomesJogadores.push(p2);
+    if(p3) nomesJogadores.push(p3);
+    if(p4) nomesJogadores.push(p4);
+
+    if (nomesJogadores.length < 2) {
+      error.textContent = "Por favor, insira pelo menos 2 nomes de jogadores.";
+      return;
+    }
+    if (nomesJogadores.length > 4) {
+      error.textContent = "No máximo 4 jogadores são permitidos.";
+      return;
+    }
+    error.textContent = "";
+
+    posicoes = new Array(nomesJogadores.length).fill(0);
+    dinheiro = new Array(nomesJogadores.length).fill(1000);
+    jogadorAtual = 0;
+
+    document.getElementById("config").style.display = "none";
+    document.getElementById("top-controls").style.display = "flex";
+    document.getElementById("tabuleiro").style.display = "flex";
+    document.getElementById("ranking").style.display = "block";
+
+    atualizarTabuleiro();
+    atualizarRanking();
+    atualizarStatus(`É a vez de ${nomesJogadores[jogadorAtual]}`);
+  }
+
+  function atualizarTabuleiro() {
+    const tabuleiro = document.getElementById("tabuleiro");
+    tabuleiro.innerHTML = "";
+
+    casas.forEach((casa, index) => {
+      const div = document.createElement("div");
+      div.className = "casa " + casa.categoria;
+      if(posicoes[jogadorAtual] === index) div.classList.add("ativo");
+
+      div.innerHTML = `
+        <span class="icon" aria-label="${casa.nome}">${casa.icon}</span>
+        <div class="nome-valor">
+          <span class="nome">${casa.nome}</span>
+          <span class="valor">${casa.valor > 0 ? '+' : '-'}R$${Math.abs(casa.valor)}</span>
+        </div>
+        <div class="jogadores-casa" aria-label="Jogadores nesta casa">${mostrarJogadoresNaCasa(index)}</div>
+      `;
+
+      tabuleiro.appendChild(div);
+    });
+  }
+
+  function mostrarJogadoresNaCasa(casaIndex) {
+    let jogadoresAqui = "";
+    posicoes.forEach((pos, idx) => {
+      if(pos === casaIndex) jogadoresAqui += avatares[idx];
+    });
+    return jogadoresAqui;
+  }
+
+  function atualizarRanking() {
+    const rankingList = document.getElementById("ranking-list");
+    rankingList.innerHTML = "";
+
+    const jogadoresOrdenados = nomesJogadores.map((nome, idx) => ({
+      nome,
+      dinheiro: dinheiro[idx],
+      avatar: avatares[idx],
+      posicao: idx,
+    })).sort((a,b) => b.dinheiro - a.dinheiro);
+
+    jogadoresOrdenados.forEach((jogador, i) => {
+      const div = document.createElement("div");
+      div.className = "player-rank";
+      div.innerHTML = `
+        <div class="pos">${i + 1}º</div>
+        <div class="avatar">${jogador.avatar}</div>
+        <div class="info">
+          <div class="name">${jogador.nome}</div>
+          <div class="score">R$ ${jogador.dinheiro}</div>
+        </div>
+      `;
+      rankingList.appendChild(div);
+    });
+  }
+
+  function atualizarStatus(msg) {
+    const status = document.getElementById("status");
+    status.textContent = msg;
+  }
+
+  function jogar() {
+    let dado = Math.floor(Math.random() * 6) + 1;
+    let mensagem = `${nomesJogadores[jogadorAtual]} rolou o dado e tirou ${dado}.`;
+
+    posicoes[jogadorAtual] += dado;
+
+    if(posicoes[jogadorAtual] >= casas.length) {
+      posicoes[jogadorAtual] -= casas.length;
+      dinheiro[jogadorAtual] += 200; // passou pela partida
+      mensagem += ` ${nomesJogadores[jogadorAtual]} passou pela partida e recebeu R$ 200!`;
+    }
+
+    let casaAtual = casas[posicoes[jogadorAtual]];
+    dinheiro[jogadorAtual] += casaAtual.valor;
+
+    mensagem += ` ${casaAtual.mensagem}`;
+
+    if(dinheiro[jogadorAtual] < 0){
+      mensagem += ` ${nomesJogadores[jogadorAtual]} está com saldo negativo!`;
+    }
+
+    atualizarStatus(mensagem);
+    atualizarTabuleiro();
+    atualizarRanking();
+
+    jogadorAtual = (jogadorAtual + 1) % nomesJogadores.length;
+
+    setTimeout(() => {
+      atualizarStatus(`É a vez de ${nomesJogadores[jogadorAtual]}`);
+    }, 5000);
+  }
+</script>
+
+</body>
+</html>
